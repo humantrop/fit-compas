@@ -6,8 +6,8 @@
 
 **Live:** https://fit-compas.vercel.app · **Repo:** https://github.com/humantrop/fit-compas
 
-Poslednje ažurirano: 21.08.2026. · završen feature 11 — dashboard klijenta
-(05–10 su stigli paralelno, svaki iz svoje sesije)
+Poslednje ažurirano: 21.08.2026. · završen feature 12 — klijenti u adminu
+(05–11 su stigli paralelno, svaki iz svoje sesije)
 
 ---
 
@@ -27,6 +27,7 @@ Poslednje ažurirano: 21.08.2026. · završen feature 11 — dashboard klijenta
 | 09 | Biblioteka za klijenta — pretraga i filteri | ✅ · police za treninge i programe još nisu upaljene |
 | 10 | Workout runner — tajmer, runde, pauze, log serija | ✅ · vozi demo planove, ne treninge iz baze |
 | 11 | Dashboard klijenta — danas, nedelja, niz, statistika | ✅ · raspored čeka 12/13 |
+| 12 | Klijenti — lista, profil, dodela programa, raspored, beleške | ✅ |
 
 ### Šta konkretno radi
 
@@ -86,6 +87,22 @@ Dan odmora i prazan dan su i ovde namerno različita stanja, isto kao u editoru 
 
 Sve se broji po kalendarskom danu u *čitaočevoj* vremenskoj zoni, ne u UTC-u. Server ne zna gde je čitalac, pa je pregledač jednom upiše u kolačić `fc-tz`, a grupisanje po danima radi Postgres kroz `at time zone`. Bez toga trening u 23:30 pada u sutrašnji dan i niz pukne bez razloga. Feature 14 treba da čita istu zonu za svoje grafikone.
 
+**Klijenti.** `/[lang]/admin/clients` — spisak svih koji imaju nalog, sa pretragom po imenu i mejlu i filterima: sa planom, bez plana, utihnuli (bez odrađenog treninga 14 dana). U redu stoji plan na kom je klijent, kada je poslednji put trenirao i koliko beleški o njemu postoji. Mejl i vreme poslednje prijave dolaze iz `auth.users`, koju Supabase poseduje — čita se kroz običan SQL i nikad se ne prijavljuje Drizzle šemi, jer bi drizzle-kit onda pokušao da je menja. Ta tri izvora (profil, `auth.users`, `workout_sessions`) čitaju se odvojenim upitima namerno: ako jedan otkaže, gubi se kolona, a ne ceo ekran.
+
+Na profilu klijenta stoje četiri stvari: plan, raspored, beleške i log treninga.
+
+**Dodela plana** je jedan red u `client_assignments`: koji program, od kog dana, i u kom je stanju (aktivan, pauziran, završen, prekinut). Nema materijalizovanog kalendara — dan N posle početka je nedelja `floor(N / days_per_week)`, polje `N mod days_per_week`, i to je cela računica. Zato pomeranje celog plana za tri dana menja jedan datum umesto 84 reda, i zato raspored ne može da se raziđe sa programom na koji pokazuje. Delimičan `unique` indeks drži pravilo „jedan živ plan po klijentu" u bazi, a ne u akciji. Pauza pamti dan kad je uvedena: kad se plan vrati, početak se pomeri za tačno onoliko dana koliko je pauza trajala — inače bi dve nedelje odmora ostavile klijenta dve nedelje iza sopstvenog plana.
+
+**Raspored** je plan položen na prave datume, sa onim što se stvarno desilo pored: tri dana unazad i dve nedelje unapred, sa oznakom da li je taj dan odrađen. Runner beleži trening po skraćenici (`workout_ref`), pa sesija na pravi dan mora biti i pravi trening da bi se računala kao ispunjen plan; bilo koji drugi trening tog dana prikazuje se kao „trenirao, ali drugi trening" — što je druga, i tačna, stvar. Dan odmora i prazan dan su i ovde različita stanja, kao u editoru programa.
+
+**Beleške** su jedina stvar u aplikaciji koju subjekt ne sme da vidi. `client_notes` nema nijednu RLS politiku za vlasnika reda — samo za admina — i nijedan klijentski ekran je ne dodiruje. Odsustvo politike je ovde pravilo, ne propust, i zato na ekranu piše „vidiš samo ti": trener piše iskrenu verziju samo ako zna da je iskrena verzija privatna.
+
+Brojke o treningu ne vode se nigde posebno — čitaju se iz `workout_sessions`, iz istog reda iz kog klijent gleda svoj dashboard, pa dva ekrana ne mogu da se posvađaju oko istog broja.
+
+Sve to nosi migracija [`supabase/migrations/0012_clients.sql`](../supabase/migrations/0012_clients.sql), pisana ručno da bi RLS stigao u istoj migraciji koja pravi tabele (provera preko PostgREST-a vraća `[]`, a upis anon ključem `42501`). Tabele su u `src/db/schema/clients.ts` i još nisu izvezene iz `schema/index.ts` — isti dogovor koji drži i runner, dok paralelne sesije ne slegnu. Tekst ekrana je u [`src/lib/clients/copy/`](../src/lib/clients/copy/), tipizovan, iz istog razloga iz kog i biblioteka ima svoj.
+
+**Feature 13 nasleđuje gotovu računicu.** [`src/lib/clients/schedule.ts`](../src/lib/clients/schedule.ts) je čist modul bez servera: `planDayFor`, `planRange` i `planProgress` prevode „nedelja 3, dan 2" u „četvrtak, 9." Kalendar klijenta i `dbScheduleSource` iz [`src/lib/dashboard/schedule-source.ts`](../src/lib/dashboard/schedule-source.ts) treba da ga pozovu nad aktivnim redom iz `client_assignments`, a ne da pišu svoju verziju — dva različita računa istog dana su način na koji trener i klijent vide različit raspored.
+
 **Ljuska klijentskog dela.** Feature 09 i 10 su imali svako svoje zaglavlje, uz napomenu da 11 pravi pravo — evo ga: [`src/components/app/app-shell.tsx`](../src/components/app/app-shell.tsx), sa linkovima u zaglavlju na širokom ekranu i donjom trakom sa tabovima na telefonu. `library-chrome.tsx` i `runner-shell.tsx` su obrisani, a biblioteka i runner sada idu kroz njega. I dalje je komponenta a ne `layout.tsx` u grupi ruta: runner je jedini ekran koji traku sa tabovima **ne** sme da ima, jer je promašen dodir usred serije prekinut trening — to je `tabs={false}`, a ne druga grupa ruta.
 
 ---
@@ -97,7 +114,7 @@ Svaka stavka je jedna sesija. Redosled je namerno takav da svaka gradi na pretho
 | # | Feature | Šta se dobija | Zavisi od |
 |---|---|---|---|
 | **10** ✅ | **Workout runner** | Izvođenje treninga: tajmer, runde, pauze, video, beleženje serija i težina | 07 |
-| **12** | **Klijenti (admin)** | Lista klijenata, profil, dodela programa, raspored po danima, beleške vidljive samo treneru | 08 |
+| **12** ✅ | **Klijenti (admin)** | Lista klijenata, profil, dodela programa, raspored po danima, beleške vidljive samo treneru | 08 |
 | **13** | **Moj plan (klijent)** | Kalendar sopstvenih treninga, označavanje kao urađeno, pomeranje termina | 12 |
 | **14** | **Napredak** | Merenja, progress fotografije, grafikoni kretanja, niz odrađenih dana | 13 |
 | **15** | **Notifikacije** | Notification centar, zakazivanje, ponavljanje, mejl obaveštenja | 12 |

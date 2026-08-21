@@ -71,7 +71,7 @@ const GROUPS: { label: keyof AdminNavCopy | null; items: Item[] }[] = [
   {
     label: "groupPeople",
     items: [
-      { key: "clients", path: "/clients", icon: Users, soon: true },
+      { key: "clients", path: "/clients", icon: Users },
       { key: "notifications", path: "/notifications", icon: Bell, soon: true },
     ],
   },
