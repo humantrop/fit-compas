@@ -1,23 +1,10 @@
 -- =============================================================================
--- Fit Compas — 0002: promote one account to admin
+-- SUPERSEDED by 0003_fix_role_guard_and_promote.sql — do not run this.
 --
--- Run this AFTER you have created your account through the signup form in the
--- app. Replace the email with the one you signed up with.
+-- This version failed with:
+--   ERROR: P0001: changing role is not permitted
 --
--- This has to be done in SQL rather than in the app: the role-escalation guard
--- in 0001 blocks any non-admin from setting role = 'admin', which is exactly
--- what stops a paying client from promoting themselves.
+-- The guard in 0001 was SECURITY DEFINER and depended on auth.uid(), which is
+-- NULL in the SQL Editor. It therefore blocked the promotion it was meant to
+-- protect. 0003 fixes the guard and performs the promotion in one script.
 -- =============================================================================
-
-update public.profiles
-set role = 'admin'
-where id = (
-  select id from auth.users
-  where lower(email) = lower('trope93@gmail.com')
-);
-
--- Verify — you should see role = admin on your row.
-select p.id, u.email, p.role, p.full_name, p.created_at
-from public.profiles p
-join auth.users u on u.id = p.id
-order by p.created_at;

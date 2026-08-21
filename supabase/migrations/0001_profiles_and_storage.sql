@@ -101,15 +101,25 @@ create trigger on_auth_user_created
 -- ---------- privilege escalation guard --------------------------------------
 -- The "update own profile" policy below would otherwise let any client set
 -- their own role to 'admin'. This blocks the role column specifically.
+--
+-- Deliberately NOT security definer: inside a SECURITY DEFINER function
+-- current_user is the function owner, not the caller, so there would be no way
+-- to tell an end user apart from a migration running in the SQL Editor.
 
 create or replace function public.prevent_role_escalation()
 returns trigger
 language plpgsql
-security definer
 set search_path = ''
 as $$
 begin
-  if new.role is distinct from old.role and not public.is_admin() then
+  -- PostgREST runs end-user requests as 'authenticated' or 'anon'. The SQL
+  -- Editor runs as 'postgres' and our own server with the secret key runs as
+  -- 'service_role'; both are trusted and skip the guard, which is what lets
+  -- the initial admin be promoted at all.
+  if new.role is distinct from old.role
+     and current_user in ('authenticated', 'anon')
+     and not public.is_admin()
+  then
     raise exception 'changing role is not permitted';
   end if;
 

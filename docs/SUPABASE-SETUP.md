@@ -124,7 +124,7 @@ Ili kroz sajt: **vercel.com → fit-compas → Settings → Environment Variable
 1. Otvori https://fit-compas.vercel.app/sr/signup i registruj se
 2. Potvrdi mejl
 3. Vrati se u **SQL Editor** → **New query**
-4. Nalepi sadržaj [`supabase/migrations/0002_make_me_admin.sql`](../supabase/migrations/0002_make_me_admin.sql)
+4. Nalepi sadržaj [`supabase/migrations/0003_fix_role_guard_and_promote.sql`](../supabase/migrations/0003_fix_role_guard_and_promote.sql)
 5. Proveri da je mejl u skripti tvoj (podrazumevano stoji `trope93@gmail.com`)
 6. **Run** — na dnu treba da vidiš svoj red sa `role = admin`
 
@@ -148,3 +148,4 @@ Javi mi i ja odmah:
 | Prijava radi ali `/dashboard` prikazuje žuto upozorenje | SQL iz koraka 2 nije pušten — nema `profiles` reda |
 | Mejl ne stiže | Supabase limit od 2/sat, ili je u spamu |
 | `role` i dalje `client` posle koraka 6 | Mejl u skripti se ne poklapa sa onim kojim si se registrovao |
+| `P0001: changing role is not permitted` | Pustio si stari `0002` umesto `0003` |
