@@ -20,6 +20,7 @@ Poslednje ažurirano: 21.08.2026. · završen feature 08 — programi
 | 03 | Autentikacija — Supabase, prijava/registracija/reset, zaštita ruta | ✅ |
 | 04 | Baza — Drizzle šema, taksonomije, RLS | ✅ |
 | 05 | Admin shell + Configuration | ✅ |
+| 06 | Vežbe + video — CRUD, upload u Storage, potpisani URL | ✅ |
 | 08 | Programi — nedelje × dani, dani odmora | ✅ · birač treninga čeka 07 |
 
 ### Šta konkretno radi
@@ -38,6 +39,14 @@ Poslednje ažurirano: 21.08.2026. · završen feature 08 — programi
 
 Dve stvari koje ovaj ekran namerno **ne** radi: ne briše i ne menja skraćenicu. Brisanje bi ili srušilo strani ključ ili kaskadno pojelo oznake na gotovim vežbama, pa ugašena stavka samo nestaje iz svih birača a postojeće oznake ostaju. Skraćenica je ono na šta pokazuju linkovi, seed i sačuvani filteri — preimenovanje je menja jedino ako se to dozvoli, pa se ne dozvoljava.
 
+**Vežbe.** `/[lang]/admin/exercises` — lista sa karticama (poster, težina, način merenja, oznake, status), pretraga po nazivu na sva tri jezika i po skraćenici, i filteri: objavljeno/u izradi, mišićna grupa, oprema, aktivnost, težina, stanje videa. Filteri žive u query stringu, pa je filtrirani prikaz link koji se može poslati i preživljava osvežavanje. Izbor nadgrupe mišića hvata i njene podgrupe — „Leđa“ vraća i sve što je označeno kao „Latisimus“.
+
+Editor uređuje naziv, opis i podsetnik na sva tri jezika kroz jezičke tabove (sva tri su uvek u DOM-u, samo skrivena, pa prebacivanje ne gubi otkucano), težinu, ponavljanja vs vreme, jednostranost i četiri grupe oznaka. Kod mišića zvezdica označava glavni mišić. Skraćenica se izvodi iz srpskog naziva i posle čuvanja se zaključava.
+
+**Video.** Fajl ne prolazi kroz Next server. Browser traži potpisani URL, šalje bajtove pravo u Storage preko `XMLHttpRequest`-a (zbog trake napretka — `fetch` je nema) i tek onda javlja da je gotovo. Poster se hvata iz samog fajla na `<canvas>`, pa se ne plaća transkodovanje. Sve iza `VideoProvider` interfejsa u [`src/lib/video/`](../src/lib/video/) — prelazak na Mux je nova implementacija tog interfejsa i vrednost u koloni `provider`, ne migracija.
+
+Objavljivanje je zasebna akcija, ne polje u formi, jer jedino ono ima uslov: vežba sa videom koji se još šalje ili je pukao ne sme da ode klijentu. Vežba bez videa sme. Gledanje ide kroz `signExerciseVideoAction`, koja već sad zove `getAccess()` — po pravilu iz odeljka ispod, da feature 18 ostane izmena jedne funkcije.
+
 **Programi.** `/[lang]/admin/programs` — lista sa pretragom i filterom objavljeno/u izradi, i editor koji je mreža: nedelje jedna ispod druge, u svakoj `days_per_week` polja. Polje je trening, odmor ili prazno — a prazno i odmor su namerno različita stanja, jer „još nisam odlučio“ nije isto što i „ovaj dan se ne trenira“. Nedelja se dodaje, duplira (sa svim danima i oznakama odmora), pomera strelicama i briše; program se objavljuje i vraća u izradu kao i vežba.
 
 Napravljeno je paralelno sa feature-om 07, pa `program_days.workout_id` nema Drizzle relaciju — pravi strani ključ dodaje migracija čim `public.workouts` postoji, a [`src/lib/programs/workout-source.ts`](../src/lib/programs/workout-source.ts) pita bazu u runtime-u da li ta tabela postoji. Dok ne postoji, birač treninga stoji zaključan uz poruku, a odmor, beleške i cela mreža rade. Kad 07 sleti, birač se popuni sam — bez izmene koda ovde.
@@ -50,10 +59,9 @@ Svaka stavka je jedna sesija. Redosled je namerno takav da svaka gradi na pretho
 
 | # | Feature | Šta se dobija | Zavisi od |
 |---|---|---|---|
-| **06** | **Vežbe + video** | CRUD vežbi, upload videa direktno u Supabase Storage, potpisani URL za gledanje, admin lista sa filterima | 05 |
 | **07** | **Workout builder** | Sklapanje treninga: zagrevanje / grupe sa rundama / smirivanje, reps vs vreme, RPE i tempo, tri nivoa pauze, dinamička polja po opremi, live preview | 06 |
 | **09** | **Biblioteka za klijenta** | Pretraga i filtriranje vežbi, treninga i programa iz ugla vežbača | 06 |
-| **10** | **Workout runner** | Izvođenje treninga: tajmer, runde, pauze, video, beleženje serija i težina | 07 |
+| **10** ✅ | **Workout runner** | Izvođenje treninga: tajmer, runde, pauze, video, beleženje serija i težina | 07 |
 | **11** | **Dashboard klijenta** | Bento dashboard — današnji trening, nedeljni raspored, niz odrađenih dana, statistika | 10 |
 | **12** | **Klijenti (admin)** | Lista klijenata, profil, dodela programa, raspored po danima, beleške vidljive samo treneru | 08 |
 | **13** | **Moj plan (klijent)** | Kalendar sopstvenih treninga, označavanje kao urađeno, pomeranje termina | 12 |
@@ -73,6 +81,29 @@ Prvo se gradi sadržaj (05–08), pa klijentska strana koja ga troši (09–11),
 Zato [`src/lib/billing/access.ts`](../src/lib/billing/access.ts) **već postoji**. `getAccess()` za sada uvek vraća „ima pristup" (polje `bypassed: true`), ali je zove svaka zaključana ruta od trenutka kad se piše. Feature 18 menja telo te jedne funkcije, ne deset ruta.
 
 > **Pravilo za svaku sesiju od 09 nadalje:** ekran koji prikazuje plaćeni sadržaj mora zvati `getAccess()`, čak i dok ta funkcija svakoga propušta. Ako se preskoči, feature 18 postaje refaktor umesto jedne izmene.
+
+---
+
+### Feature 10 — urađeno, uz jedan šav koji čeka 07
+
+Runner živi na `/{jezik}/workout` — lista treninga i sam ekran izvođenja: tajmer
+po satu a ne po otkucajima (zaključan telefon se vraća sa tačnim vremenom), runde,
+tri nivoa pauze, video, upis serija i kilaže, nastavak prekinutog treninga i
+sažetak sa RPE i beleškom. Ekran drži budnim `wakeLock` dok trening traje.
+
+Pisan je pre feature-a 07, pa plan ne čita iz baze nego kroz šav u
+[`src/lib/runner/source.ts`](../src/lib/runner/source.ts). Sada vraća tri ogledna
+treninga. **Feature 07: dodati `dbRunnerSource` i vratiti ga iz `getRunnerSource()`
+— ništa u `components/runner/` se ne menja.**
+
+Log ide u `workout_sessions` i `set_logs`, sa RLS-om u istoj migraciji
+[`supabase/migrations/0010_workout_runner.sql`](../supabase/migrations/0010_workout_runner.sql)
+(primenjena na živu bazu, PostgREST provera vraća `[]`). Totali se ne sabiraju u
+hodu nego se preračunavaju iz redova, pa dvaput poslata serija ne broji duplo.
+
+Dve stvari su namerno odvojene dok paralelne sesije ne slegnu, obe objašnjene na
+mestu: tabele nisu izvezene iz `src/db/schema/index.ts`, a prevodi runnera su u
+`src/dictionaries/runner/*.json` umesto u tri glavna rečnika.
 
 ---
 
