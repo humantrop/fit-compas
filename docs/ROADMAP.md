@@ -7,7 +7,7 @@
 **Live:** https://fit-compas.vercel.app · **Repo:** https://github.com/humantrop/fit-compas
 
 Poslednje ažurirano: 21.08.2026. · završen feature 07 — workout builder
-(07 je građen paralelno sa 06, na grani `feat/07-workout-builder`)
+(05, 06, 08, 09 i 10 su stigli paralelno, svaki iz svoje sesije)
 
 ---
 
@@ -21,7 +21,11 @@ Poslednje ažurirano: 21.08.2026. · završen feature 07 — workout builder
 | 03 | Autentikacija — Supabase, prijava/registracija/reset, zaštita ruta | ✅ |
 | 04 | Baza — Drizzle šema, taksonomije, RLS | ✅ |
 | 05 | Admin shell + Configuration | ✅ |
-| 07 | Workout builder | ✅ |
+| 06 | Vežbe + video — CRUD, upload u Storage, potpisani URL | ✅ |
+| 07 | Workout builder — blokovi sa rundama, tri nivoa pauze, live preview | ✅ |
+| 08 | Programi — nedelje × dani, dani odmora | ✅ · birač treninga radi otkad je 07 stigao |
+| 09 | Biblioteka za klijenta — pretraga i filteri | ✅ · police za treninge i programe još nisu upaljene |
+| 10 | Workout runner — tajmer, runde, pauze, log serija | ✅ · vozi demo planove, ne treninge iz baze |
 
 ### Šta konkretno radi
 
@@ -39,6 +43,14 @@ Poslednje ažurirano: 21.08.2026. · završen feature 07 — workout builder
 
 Dve stvari koje ovaj ekran namerno **ne** radi: ne briše i ne menja skraćenicu. Brisanje bi ili srušilo strani ključ ili kaskadno pojelo oznake na gotovim vežbama, pa ugašena stavka samo nestaje iz svih birača a postojeće oznake ostaju. Skraćenica je ono na šta pokazuju linkovi, seed i sačuvani filteri — preimenovanje je menja jedino ako se to dozvoli, pa se ne dozvoljava.
 
+**Vežbe.** `/[lang]/admin/exercises` — lista sa karticama (poster, težina, način merenja, oznake, status), pretraga po nazivu na sva tri jezika i po skraćenici, i filteri: objavljeno/u izradi, mišićna grupa, oprema, aktivnost, težina, stanje videa. Filteri žive u query stringu, pa je filtrirani prikaz link koji se može poslati i preživljava osvežavanje. Izbor nadgrupe mišića hvata i njene podgrupe — „Leđa“ vraća i sve što je označeno kao „Latisimus“.
+
+Editor uređuje naziv, opis i podsetnik na sva tri jezika kroz jezičke tabove (sva tri su uvek u DOM-u, samo skrivena, pa prebacivanje ne gubi otkucano), težinu, ponavljanja vs vreme, jednostranost i četiri grupe oznaka. Kod mišića zvezdica označava glavni mišić. Skraćenica se izvodi iz srpskog naziva i posle čuvanja se zaključava.
+
+**Video.** Fajl ne prolazi kroz Next server. Browser traži potpisani URL, šalje bajtove pravo u Storage preko `XMLHttpRequest`-a (zbog trake napretka — `fetch` je nema) i tek onda javlja da je gotovo. Poster se hvata iz samog fajla na `<canvas>`, pa se ne plaća transkodovanje. Sve iza `VideoProvider` interfejsa u [`src/lib/video/`](../src/lib/video/) — prelazak na Mux je nova implementacija tog interfejsa i vrednost u koloni `provider`, ne migracija.
+
+Objavljivanje je zasebna akcija, ne polje u formi, jer jedino ono ima uslov: vežba sa videom koji se još šalje ili je pukao ne sme da ode klijentu. Vežba bez videa sme. Gledanje ide kroz `signExerciseVideoAction`, koja već sad zove `getAccess()` — po pravilu iz odeljka ispod, da feature 18 ostane izmena jedne funkcije.
+
 **Treninzi.** `/[lang]/admin/workouts` — lista sa pretragom i filterom objavljeno / u izradi, i builder na `/workouts/<id>`.
 
 Trening ima tri nivoa: **trening → blok → linija**. Blok je zagrevanje, rad ili smirivanje; broj rundi stoji na bloku, pa je kružni trening samo blok sa tri runde, bez posebne tabele za to. Linija je jedna vežba: reps ili vreme, broj serija, RPE (dozvoljene su polovine — 7.5 je stvarna preporuka), tempo u obliku `3-1-1-0`, i napomena.
@@ -51,7 +63,19 @@ Trening ima tri nivoa: **trening → blok → linija**. Blok je zagrevanje, rad 
 
 Čuvanje briše i ponovo upisuje sve blokove i linije u jednoj transakciji. Diff ovde ništa ne bi kupio — trening je nekoliko desetina redova, uređuje ga jedna osoba, a ovako je i promena redosleda besplatna: pozicija je prosto indeks u nizu.
 
-**Zavisnost od 06.** Builder čita iz tabele `exercises` — dok 06 ne unese nijednu vežbu, birač vežbi prikazuje prazno stanje i objašnjava zašto. Ništa drugo ne čeka 06.
+Građen je paralelno sa 06, na grani, pa builder čita `exercises` direktno i ne dira nijedan fajl koji 06 nosi. Birač vežbi prikazuje prazno stanje sve dok u biblioteci nema nijedne vežbe.
+
+**Programi.** `/[lang]/admin/programs` — lista sa pretragom i filterom objavljeno/u izradi, i editor koji je mreža: nedelje jedna ispod druge, u svakoj `days_per_week` polja. Polje je trening, odmor ili prazno — a prazno i odmor su namerno različita stanja, jer „još nisam odlučio“ nije isto što i „ovaj dan se ne trenira“. Nedelja se dodaje, duplira (sa svim danima i oznakama odmora), pomera strelicama i briše; program se objavljuje i vraća u izradu kao i vežba.
+
+Napravljeno je paralelno sa feature-om 07, pa `program_days.workout_id` nema Drizzle relaciju — pravi strani ključ dodaje migracija čim `public.workouts` postoji, a [`src/lib/programs/workout-source.ts`](../src/lib/programs/workout-source.ts) pita bazu u runtime-u da li ta tabela postoji. Dok ne postoji, birač treninga stoji zaključan uz poruku, a odmor, beleške i cela mreža rade. Kad 07 sleti, birač se popuni sam — bez izmene koda ovde.
+
+**Biblioteka.** `/[lang]/library` — isti katalog iz ugla vežbača. Prikazuje samo objavljeno; nacrt sa videom koji se još šalje ne postoji za klijenta ni kroz filter ni kroz pogođenu skraćenicu. Filtriranje ide po opremi, mišićnoj grupi, cilju, aktivnosti i težini — unutar jedne grupe uslovi se sabiraju, između grupa presecaju, kao u prodavnici. Ponuđene su samo oznake koje stvarno stoje na nekoj objavljenoj vežbi, sa brojem pored, a ne ceo rečnik; nadgrupa mišića hvata i podgrupe. Sve stanje je u query stringu, pa je filtriran prikaz link, a `Nazad` znači nešto. Lista je serverska komponenta — jedina klijentska je panel sa filterima, koji samo prepisuje URL.
+
+Police za treninge i programe stoje uz poruku „uskoro“, jer 07 i 08 nose svoje tabele. Ekran je zato pisan nad [`src/lib/library/sources.ts`](../src/lib/library/sources.ts), a ne nad tri skupa tabela — paljenje police je izmena dva reda u tom fajlu, ostalo se ne dira.
+
+`getAccess()` se zove u layout-u biblioteke, ne u svakoj stranici. Time je pravilo iz odeljka ispod strukturno: zaključanom čitaocu se `children` uopšte ne renderuje, pa se ni upiti ne izvrše, i nova stranica pod `/library` ne može da zaboravi proveru.
+
+Tekst ove sekcije je u [`src/lib/library/copy/`](../src/lib/library/copy/) kao tipizovani moduli, ne u tri zajednička rečnika: TypeScript tako odbija jezik kome fali ključ, što `npm run check:i18n` hvata tek kad se pokrene.
 
 ---
 
@@ -61,10 +85,7 @@ Svaka stavka je jedna sesija. Redosled je namerno takav da svaka gradi na pretho
 
 | # | Feature | Šta se dobija | Zavisi od |
 |---|---|---|---|
-| **06** | **Vežbe + video** | CRUD vežbi, upload videa direktno u Supabase Storage, potpisani URL za gledanje, admin lista sa filterima | 05 |
-| **08** | **Programi** | Višenedeljni programi — nedelje × dani → treninzi, sa danima odmora | 07 |
-| **09** | **Biblioteka za klijenta** | Pretraga i filtriranje vežbi, treninga i programa iz ugla vežbača | 06 |
-| **10** | **Workout runner** | Izvođenje treninga: tajmer, runde, pauze, video, beleženje serija i težina | 07 |
+| **10** ✅ | **Workout runner** | Izvođenje treninga: tajmer, runde, pauze, video, beleženje serija i težina | 07 |
 | **11** | **Dashboard klijenta** | Bento dashboard — današnji trening, nedeljni raspored, niz odrađenih dana, statistika | 10 |
 | **12** | **Klijenti (admin)** | Lista klijenata, profil, dodela programa, raspored po danima, beleške vidljive samo treneru | 08 |
 | **13** | **Moj plan (klijent)** | Kalendar sopstvenih treninga, označavanje kao urađeno, pomeranje termina | 12 |
@@ -84,6 +105,29 @@ Prvo se gradi sadržaj (05–08), pa klijentska strana koja ga troši (09–11),
 Zato [`src/lib/billing/access.ts`](../src/lib/billing/access.ts) **već postoji**. `getAccess()` za sada uvek vraća „ima pristup" (polje `bypassed: true`), ali je zove svaka zaključana ruta od trenutka kad se piše. Feature 18 menja telo te jedne funkcije, ne deset ruta.
 
 > **Pravilo za svaku sesiju od 09 nadalje:** ekran koji prikazuje plaćeni sadržaj mora zvati `getAccess()`, čak i dok ta funkcija svakoga propušta. Ako se preskoči, feature 18 postaje refaktor umesto jedne izmene.
+
+---
+
+### Feature 10 — urađeno, uz jedan šav koji čeka 07
+
+Runner živi na `/{jezik}/workout` — lista treninga i sam ekran izvođenja: tajmer
+po satu a ne po otkucajima (zaključan telefon se vraća sa tačnim vremenom), runde,
+tri nivoa pauze, video, upis serija i kilaže, nastavak prekinutog treninga i
+sažetak sa RPE i beleškom. Ekran drži budnim `wakeLock` dok trening traje.
+
+Pisan je pre feature-a 07, pa plan ne čita iz baze nego kroz šav u
+[`src/lib/runner/source.ts`](../src/lib/runner/source.ts). Sada vraća tri ogledna
+treninga. **Feature 07: dodati `dbRunnerSource` i vratiti ga iz `getRunnerSource()`
+— ništa u `components/runner/` se ne menja.**
+
+Log ide u `workout_sessions` i `set_logs`, sa RLS-om u istoj migraciji
+[`supabase/migrations/0010_workout_runner.sql`](../supabase/migrations/0010_workout_runner.sql)
+(primenjena na živu bazu, PostgREST provera vraća `[]`). Totali se ne sabiraju u
+hodu nego se preračunavaju iz redova, pa dvaput poslata serija ne broji duplo.
+
+Dve stvari su namerno odvojene dok paralelne sesije ne slegnu, obe objašnjene na
+mestu: tabele nisu izvezene iz `src/db/schema/index.ts`, a prevodi runnera su u
+`src/dictionaries/runner/*.json` umesto u tri glavna rečnika.
 
 ---
 
@@ -124,6 +168,41 @@ Ništa od ovoga ne blokira rad, ali će morati odluka pre lansiranja.
 ## Zamke naučene na teži način
 
 Ovo su stvari koje su već jednom pukle. Vredi ih pročitati pre nego što se dira odgovarajući deo.
+
+**Više sesija radi u istom radnom folderu, pa je `git` indeks zajednički.** Ako
+sesija uradi `git add`, a druga u međuvremenu commituje, u komit ode i tuđ
+nedovršen rad. Gore od toga: stablo napravljeno od starog `HEAD`-a pa
+commitovano na novi obriše sve što je u međuvremenu sletelo — tako je 24f292c
+pojeo ceo feature 10, a b291873 ga vratio. Recept koji radi:
+
+```bash
+export GIT_INDEX_FILE=/tmp/idx          # svoj indeks, ne dira zajednički
+PARENT=$(git rev-parse refs/heads/main) # roditelj se čita TU, ne ranije
+git read-tree "$PARENT"
+git update-index --add --cacheinfo 100644,<blob>,<putanja>   # samo svoji fajlovi
+git update-ref refs/heads/main "$(git commit-tree ...)" "$PARENT"  # CAS
+```
+
+Poslednji red je ključan: `git update-ref` sa očekivanom starom vrednošću
+odbije da pomeri granu ako je neko drugi u međuvremenu commitovao.
+
+**Zajednički fajl se sme commitovati samo kao „HEAD + moja izmena".** Rečnici,
+`db/schema/index.ts`, `admin-shell.tsx` i ROADMAP menja svaka sesija. Radna
+kopija tog fajla u datom trenutku sadrži i tuđe nedovršene izmene, pa se
+sadržaj za komit pravi tako što se `git show HEAD:<fajl>` ponovo obradi. Izmena
+mora ostati i u radnoj kopiji — ako se samo stage-uje, sledeća sesija je
+commitom vrati unazad.
+
+**Broj migracije se rezerviše po broju feature-a.** `drizzle/0008_programs.sql`,
+`supabase/migrations/0010_workout_runner.sql`. Dve sesije koje istovremeno
+puste `db:generate` obe dobiju `0002_*.sql`. Drizzle primenjuje migracije redom
+iz `_journal.json`, ne po imenu, pa rupa u numeraciji ništa ne košta.
+
+**`rm -rf` na Windows junction-u briše ono na šta pokazuje.** Junction ka
+`node_modules` napravljen radi izolovanog builda je pri brisanju odneo pravi
+`node_modules` i zaustavio sve sesije. Vraća se sa `npm ci`; junction se briše
+sa `rmdir` (bez `-r`).
+
 
 **`config.matcher` u Next 16 briše escape sekvence.** Napisano `.*\..*` postaje `.*..*`, što odgovara svakom neprazan putu. Negativni lookahead onda isključi celu aplikaciju, a proxy radi jedino na `/`. Izgleda ispravno jer locale redirect sa `/` i dalje radi. Filtriranje fajlova mora u kod. Kompajlirani matcher se proverava u `.next/server/functions-config-manifest.json`.
 

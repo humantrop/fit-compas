@@ -17,10 +17,17 @@
       "breakpoints": true
     },
     {
-      "idx": 2,
+      "idx": 8,
       "version": "7",
-      "when": 1787318468846,
-      "tag": "0002_workouts",
+      "when": 1787317588951,
+      "tag": "0008_programs",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1787326111536,
+      "tag": "0009_workouts",
       "breakpoints": true
     }
   ]
