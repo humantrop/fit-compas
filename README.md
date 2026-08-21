@@ -1,36 +1,58 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Fit Compas
 
-## Getting Started
+Subscription fitness platform. A coach publishes exercise videos, assembles them
+into workouts and multi-week programs, assigns them to clients, and tracks what
+actually got done. Clients subscribe to get access.
 
-First, run the development server:
+**Live:** https://fit-compas.vercel.app
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Stack
+
+| Concern | Choice |
+| --- | --- |
+| Framework | Next.js 16 (App Router, Turbopack), React 19, TypeScript |
+| Styling | Tailwind CSS 4, CSS-first tokens in `src/app/globals.css` |
+| Database | Supabase Postgres via Drizzle ORM |
+| Auth | Supabase Auth |
+| Video | Supabase Storage behind a provider interface (Mux/Bunny swappable) |
+| Billing | Polar.sh |
+| Hosting | Vercel, auto-deploy on push to `main` |
+| Mobile | Capacitor (planned) |
+
+## Layout
+
+```
+src/
+  app/[lang]/        locale-scoped routes; the root layout lives here
+  app/api/           route handlers (Polar webhooks, signed video URLs)
+  components/ui/     design primitives — Surface, Button, Eyebrow
+  components/site/   header, footer, locale switcher
+  components/marketing/
+  dictionaries/      sr.json, en.json, ru.json — identical key trees
+  lib/i18n/          locale config and server-only dictionary loader
+  proxy.ts           locale resolution (Next 16's renamed middleware)
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Conventions that are not optional
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Glass comes from one place.** Use `<Surface>` or the `glass` / `glass-strong`
+  utilities. Hand-rolling `bg-white/5 backdrop-blur` anywhere else makes the
+  surfaces drift apart until the UI stops reading as one system.
+- **Safe areas and touch targets are load-bearing.** Controls are ≥44px, insets
+  come from the `pt-safe` / `pb-safe` / `pb-tabbar` utilities, and nothing
+  depends on `:hover`. This ships inside a Capacitor WebView later.
+- **`<video>` always gets `playsInline`.** Without it iOS hijacks playback into
+  a fullscreen player and breaks the workout runner.
+- **Dictionaries stay in sync.** All three files must have the same key tree.
+- **Next 16 renamed middleware to `proxy.ts`** and `params` is a Promise.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Local development
 
-## Learn More
+```bash
+npm install
+npm run dev     # http://localhost:3000 → redirects to /sr
+npm run build   # must pass before every push
+```
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Environment variables live in `.env.local` (git-ignored) and mirror the Vercel
+project settings.
