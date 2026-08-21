@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 
 import { translate } from "@/db/schema/i18n";
-import { RunnerShell } from "@/components/runner/runner-shell";
+import { AppShell } from "@/components/app/app-shell";
 import { WorkoutRunner } from "@/components/runner/workout-runner";
 import { ButtonLink } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
@@ -51,7 +51,7 @@ export default async function WorkoutRunnerPage({
 
   if (!access.active) {
     return (
-      <RunnerShell lang={lang}>
+      <AppShell lang={lang} isAdmin={profile?.role === "admin"} width="narrow" tabs={false}>
         <Surface tone="strong" edge className="p-7">
           <h1 className="text-xl font-semibold text-ink-50">
             {copy.access.title}
@@ -63,7 +63,7 @@ export default async function WorkoutRunnerPage({
             {copy.summary.backToList}
           </ButtonLink>
         </Surface>
-      </RunnerShell>
+      </AppShell>
     );
   }
 
@@ -71,7 +71,7 @@ export default async function WorkoutRunnerPage({
 
   if (!plan) {
     return (
-      <RunnerShell lang={lang}>
+      <AppShell lang={lang} isAdmin={profile?.role === "admin"} width="narrow" tabs={false}>
         <Surface className="p-7">
           <h1 className="text-xl font-semibold text-ink-50">
             {copy.notFound.title}
@@ -83,7 +83,7 @@ export default async function WorkoutRunnerPage({
             {copy.summary.backToList}
           </ButtonLink>
         </Surface>
-      </RunnerShell>
+      </AppShell>
     );
   }
 
@@ -91,7 +91,7 @@ export default async function WorkoutRunnerPage({
   const { state, loggingAvailable } = await loadActiveSession(user.id, plan.slug);
 
   return (
-    <RunnerShell lang={lang}>
+    <AppShell lang={lang} isAdmin={profile?.role === "admin"} width="narrow" tabs={false}>
       <WorkoutRunner
         lang={lang}
         plan={plan}
@@ -101,6 +101,6 @@ export default async function WorkoutRunnerPage({
         copy={copy}
         backHref={backHref}
       />
-    </RunnerShell>
+    </AppShell>
   );
 }

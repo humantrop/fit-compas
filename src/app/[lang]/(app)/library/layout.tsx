@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 
-import { LibraryChrome } from "@/components/library/library-chrome";
+import { AppShell } from "@/components/app/app-shell";
 import { LockedNotice } from "@/components/library/notice";
 import { requireProfile } from "@/lib/auth/session";
 import { getAccess } from "@/lib/billing/access";
@@ -18,6 +18,11 @@ import { getLibraryCopy } from "@/lib/library/copy";
  * means the page's queries never run.
  *
  * Feature 18 changes the body of `getAccess()` and this file stays as it is.
+ *
+ * The chrome around it is `AppShell` (feature 11). It used to be a
+ * library-local copy of the header, written that way so two parallel features
+ * could not fight over one layout file; that copy is gone now that the real
+ * shell exists.
  */
 export default async function LibraryLayout({
   children,
@@ -31,7 +36,7 @@ export default async function LibraryLayout({
   const copy = getLibraryCopy(lang);
 
   return (
-    <LibraryChrome lang={lang} isAdmin={profile.role === "admin"} copy={copy}>
+    <AppShell lang={lang} isAdmin={profile.role === "admin"}>
       {access.active ? (
         children
       ) : (
@@ -44,6 +49,6 @@ export default async function LibraryLayout({
           }}
         />
       )}
-    </LibraryChrome>
+    </AppShell>
   );
 }

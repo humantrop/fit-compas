@@ -6,8 +6,8 @@
 
 **Live:** https://fit-compas.vercel.app · **Repo:** https://github.com/humantrop/fit-compas
 
-Poslednje ažurirano: 21.08.2026. · završen feature 07 — workout builder
-(05, 06, 08, 09 i 10 su stigli paralelno, svaki iz svoje sesije)
+Poslednje ažurirano: 21.08.2026. · završen feature 11 — dashboard klijenta
+(05–10 su stigli paralelno, svaki iz svoje sesije)
 
 ---
 
@@ -26,6 +26,7 @@ Poslednje ažurirano: 21.08.2026. · završen feature 07 — workout builder
 | 08 | Programi — nedelje × dani, dani odmora | ✅ · birač treninga radi otkad je 07 stigao |
 | 09 | Biblioteka za klijenta — pretraga i filteri | ✅ · police za treninge i programe još nisu upaljene |
 | 10 | Workout runner — tajmer, runde, pauze, log serija | ✅ · vozi demo planove, ne treninge iz baze |
+| 11 | Dashboard klijenta — danas, nedelja, niz, statistika | ✅ · raspored čeka 12/13 |
 
 ### Šta konkretno radi
 
@@ -77,6 +78,16 @@ Police za treninge i programe stoje uz poruku „uskoro“, jer 07 i 08 nose svo
 
 Tekst ove sekcije je u [`src/lib/library/copy/`](../src/lib/library/copy/) kao tipizovani moduli, ne u tri zajednička rečnika: TypeScript tako odbija jezik kome fali ključ, što `npm run check:i18n` hvata tek kad se pokrene.
 
+**Dashboard.** `/[lang]/dashboard` — bento početni ekran klijenta. Gore stoji jedna kartica koja odgovara na „šta sad“: nedovršen trening ako ga ima, pa „odrađeno za danas“, pa ono što plan kaže za danas, pa — dok plana nema — predlog koji se pokreće odmah. Uz nju idu niz odrađenih dana, traka nedelje od ponedeljka, poslednji treninzi i brojke u tri prozora (7 dana, 30 dana, ukupno).
+
+Ništa od toga nema svoju tabelu. Sve se izvodi iz `workout_sessions`, koje runner ionako piše, pa dashboard i runner ne mogu da se raziđu oko istog broja. Jedino što se ne može izvesti jeste šta je trener *planirao* — dodela programa je feature 12, kalendar je 13 — pa to ide kroz šav [`src/lib/dashboard/schedule-source.ts`](../src/lib/dashboard/schedule-source.ts) i dok ga nema piše „plan još nije dodeljen“. Prazna nedelja bez objašnjenja izgleda kao kvar, a nije.
+
+Dan odmora i prazan dan su i ovde namerno različita stanja, isto kao u editoru programa: reći klijentu „danas se odmara“ kad to niko nije rekao je uputstvo za trening koje je aplikacija izmislila.
+
+Sve se broji po kalendarskom danu u *čitaočevoj* vremenskoj zoni, ne u UTC-u. Server ne zna gde je čitalac, pa je pregledač jednom upiše u kolačić `fc-tz`, a grupisanje po danima radi Postgres kroz `at time zone`. Bez toga trening u 23:30 pada u sutrašnji dan i niz pukne bez razloga. Feature 14 treba da čita istu zonu za svoje grafikone.
+
+**Ljuska klijentskog dela.** Feature 09 i 10 su imali svako svoje zaglavlje, uz napomenu da 11 pravi pravo — evo ga: [`src/components/app/app-shell.tsx`](../src/components/app/app-shell.tsx), sa linkovima u zaglavlju na širokom ekranu i donjom trakom sa tabovima na telefonu. `library-chrome.tsx` i `runner-shell.tsx` su obrisani, a biblioteka i runner sada idu kroz njega. I dalje je komponenta a ne `layout.tsx` u grupi ruta: runner je jedini ekran koji traku sa tabovima **ne** sme da ima, jer je promašen dodir usred serije prekinut trening — to je `tabs={false}`, a ne druga grupa ruta.
+
 ---
 
 ## Sledeći koraci
@@ -86,7 +97,6 @@ Svaka stavka je jedna sesija. Redosled je namerno takav da svaka gradi na pretho
 | # | Feature | Šta se dobija | Zavisi od |
 |---|---|---|---|
 | **10** ✅ | **Workout runner** | Izvođenje treninga: tajmer, runde, pauze, video, beleženje serija i težina | 07 |
-| **11** | **Dashboard klijenta** | Bento dashboard — današnji trening, nedeljni raspored, niz odrađenih dana, statistika | 10 |
 | **12** | **Klijenti (admin)** | Lista klijenata, profil, dodela programa, raspored po danima, beleške vidljive samo treneru | 08 |
 | **13** | **Moj plan (klijent)** | Kalendar sopstvenih treninga, označavanje kao urađeno, pomeranje termina | 12 |
 | **14** | **Napredak** | Merenja, progress fotografije, grafikoni kretanja, niz odrađenih dana | 13 |
@@ -203,6 +213,10 @@ iz `_journal.json`, ne po imenu, pa rupa u numeraciji ništa ne košta.
 `node_modules` i zaustavio sve sesije. Vraća se sa `npm ci`; junction se briše
 sa `rmdir` (bez `-r`).
 
+
+**`sr-RS` u `Intl`-u daje ćirilicu.** Ceo UI je latinica, a svaki `Intl.DateTimeFormat` je ispisivao „петак, 21. август“. ICU za goli `sr-RS` bira ćirilično pismo — tag mora nositi i pismo, `sr-Latn-RS`. Brojevi i pravila za množinu su identična, menja se samo pismo. Ispravljeno u `localeTags`, pa važi i za biblioteku i za runner.
+
+**Modul koji uvozi `next/headers` ne sme da dođe do klijentske komponente.** Čitanje kolačića i naziv tog kolačića su bili u istom fajlu; klijentski `TimezoneProbe` je uvezao samo konstantu i time povukao `next/headers` u browser bundle, a build je pukao. Konstante idu u fajl odvojen od serverskog čitanja (`timezone.ts` naspram `timezone-server.ts`).
 
 **`config.matcher` u Next 16 briše escape sekvence.** Napisano `.*\..*` postaje `.*..*`, što odgovara svakom neprazan putu. Negativni lookahead onda isključi celu aplikaciju, a proxy radi jedino na `/`. Izgleda ispravno jer locale redirect sa `/` i dalje radi. Filtriranje fajlova mora u kod. Kompajlirani matcher se proverava u `.next/server/functions-config-manifest.json`.
 

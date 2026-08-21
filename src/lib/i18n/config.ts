@@ -17,9 +17,16 @@ export const localeShort: Record<Locale, string> = {
   ru: "RU",
 };
 
-/** BCP 47 tags for <html lang> and Intl formatters. */
+/**
+ * BCP 47 tags for <html lang> and Intl formatters.
+ *
+ * Serbian carries its script: bare `sr-RS` resolves to Cyrillic in ICU, so
+ * every `Intl.DateTimeFormat` in the app printed "петак, 21. август" under a
+ * UI written entirely in Latin. Numbers and plural rules are identical between
+ * the two — only the script changes.
+ */
 export const localeTags: Record<Locale, string> = {
-  sr: "sr-RS",
+  sr: "sr-Latn-RS",
   en: "en-US",
   ru: "ru-RU",
 };

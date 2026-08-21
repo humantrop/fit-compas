@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 
 import { translate } from "@/db/schema/i18n";
-import { RunnerShell } from "@/components/runner/runner-shell";
+import { AppShell } from "@/components/app/app-shell";
 import { Surface } from "@/components/ui/surface";
 import { getProfile, requireUser } from "@/lib/auth/session";
 import { getAccess } from "@/lib/billing/access";
@@ -36,7 +36,7 @@ export default async function WorkoutListPage({
 
   if (!access.active) {
     return (
-      <RunnerShell lang={lang}>
+      <AppShell lang={lang} isAdmin={profile?.role === "admin"} width="narrow">
         <Surface tone="strong" edge className="p-7">
           <h1 className="text-xl font-semibold text-ink-50">
             {copy.access.title}
@@ -45,7 +45,7 @@ export default async function WorkoutListPage({
             {copy.access.body}
           </p>
         </Surface>
-      </RunnerShell>
+      </AppShell>
     );
   }
 
@@ -58,7 +58,7 @@ export default async function WorkoutListPage({
   });
 
   return (
-    <RunnerShell lang={lang}>
+    <AppShell lang={lang} isAdmin={profile?.role === "admin"} width="narrow">
       <h1 className="text-3xl font-bold tracking-tight text-ink-50 sm:text-4xl">
         {copy.list.title}
       </h1>
@@ -146,6 +146,6 @@ export default async function WorkoutListPage({
           </ul>
         </section>
       ) : null}
-    </RunnerShell>
+    </AppShell>
   );
 }
