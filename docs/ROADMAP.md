@@ -6,7 +6,7 @@
 
 **Live:** https://fit-compas.vercel.app · **Repo:** https://github.com/humantrop/fit-compas
 
-Poslednje ažurirano: 21.08.2026.
+Poslednje ažurirano: 21.08.2026. · redosled izmenjen: naplata pomerena na 18
 
 ---
 
@@ -47,20 +47,24 @@ Svaka stavka je jedna sesija. Redosled je namerno takav da svaka gradi na pretho
 | **09** | **Biblioteka za klijenta** | Pretraga i filtriranje vežbi, treninga i programa iz ugla vežbača | 06 |
 | **10** | **Workout runner** | Izvođenje treninga: tajmer, runde, pauze, video, beleženje serija i težina | 07 |
 | **11** | **Dashboard klijenta** | Bento dashboard — današnji trening, nedeljni raspored, niz odrađenih dana, statistika | 10 |
-| **12** | **Polar naplata** | Checkout, customer portal, webhook, `getAccess()`, paywall ekrani, zaključavanje sadržaja | 11 |
-| **13** | **Klijenti (admin)** | Lista klijenata, profil, dodela programa, raspored po danima, beleške vidljive samo treneru | 08, 12 |
-| **14** | **Moj plan (klijent)** | Kalendar sopstvenih treninga, označavanje kao urađeno, pomeranje termina | 13 |
-| **15** | **Napredak** | Merenja, progress fotografije, grafikoni kretanja, niz odrađenih dana | 14 |
-| **16** | **Notifikacije** | Notification centar, zakazivanje, ponavljanje, mejl obaveštenja | 13 |
-| **17** | **Nalog i podešavanja** | Profil, jedinice mere, jezik, promena lozinke, upravljanje pretplatom | 12 |
-| **18** | **Mejl + poliranje** | Resend kao SMTP umesto Supabase mailera, mobilni prolaz kroz sve ekrane, Polar na production | 17 |
+| **12** | **Klijenti (admin)** | Lista klijenata, profil, dodela programa, raspored po danima, beleške vidljive samo treneru | 08 |
+| **13** | **Moj plan (klijent)** | Kalendar sopstvenih treninga, označavanje kao urađeno, pomeranje termina | 12 |
+| **14** | **Napredak** | Merenja, progress fotografije, grafikoni kretanja, niz odrađenih dana | 13 |
+| **15** | **Notifikacije** | Notification centar, zakazivanje, ponavljanje, mejl obaveštenja | 12 |
+| **16** | **Nalog i podešavanja** | Profil, jedinice mere, jezik, promena lozinke | 11 |
+| **17** | **Mejl + poliranje** | Resend kao SMTP umesto Supabase mailera, mobilni prolaz kroz sve ekrane | 16 |
+| **18** | **Polar naplata** | Checkout, customer portal, webhook, popunjavanje `getAccess()`, paywall ekrani, upravljanje pretplatom u nalogu | 17 |
 | **19** | **Capacitor — mobilna app** | iOS i Android build, push notifikacije, kamera, keep-awake u runneru, deep linkovi | 18 |
 
 ### Zašto ovim redosledom
 
-Naplata (12) dolazi tek posle klijentske strane (09–11) jer paywall nema šta da zaključava dok ne postoji sadržaj koji se gleda. Klijenti (13) dolaze posle naplate jer dodela programa ima smisla tek kad postoji pretplatnik. Capacitor (19) je poslednji jer pakuje gotovu aplikaciju — nema svrhe pakovati je dok se ekrani menjaju.
+Prvo se gradi sadržaj (05–08), pa klijentska strana koja ga troši (09–11), pa petlja trener↔klijent (12–15). Naplata je pretposlednja jer paywall nema šta da zaključava dok ne postoji ceo proizvod, a Capacitor je poslednji jer pakuje gotovu aplikaciju — nema svrhe pakovati je dok se ekrani menjaju.
 
-Ako ti neki redosled ne odgovara, reci — nije svet.
+**Posledica toga što naplata ide na kraj, i kako je rešena.** Sve do feature-a 18 aplikacija se pravi bez ijedne provere pristupa. Da se to ostavi tako, feature 18 bi značio vraćanje u desetak gotovih ruta da se doda gating — a to je način na koji zaključavanje završi sa rupama.
+
+Zato [`src/lib/billing/access.ts`](../src/lib/billing/access.ts) **već postoji**. `getAccess()` za sada uvek vraća „ima pristup" (polje `bypassed: true`), ali je zove svaka zaključana ruta od trenutka kad se piše. Feature 18 menja telo te jedne funkcije, ne deset ruta.
+
+> **Pravilo za svaku sesiju od 09 nadalje:** ekran koji prikazuje plaćeni sadržaj mora zvati `getAccess()`, čak i dok ta funkcija svakoga propušta. Ako se preskoči, feature 18 postaje refaktor umesto jedne izmene.
 
 ---
 
@@ -89,10 +93,10 @@ Marketplace, MFWNet javni feed, Stripe Connect, white-label rebranding, multi-or
 
 Ništa od ovoga ne blokira rad, ali će morati odluka pre lansiranja.
 
-1. **Cene.** Trenutno su placeholder — 9.90 € mesečno / 29.90 € za paket sa trenerom, u [`src/lib/pricing.ts`](../src/lib/pricing.ts). Struktura je već u obliku koji Polar vraća, pa zamena ne dira UI.
-2. **Naplata na iOS-u.** Apple pravilo 3.1.1 zabranjuje Polar checkout unutar WebView-a. Plan je „reader app" model za prvi release (iOS ne prikazuje cene uopšte), RevenueCat IAP kasnije. Zbog toga `getAccess()` iz feature-a 12 mora ostati apstraktan nad izvorom pretplate.
+1. **Cene.** Trebaju tek za feature 18. Trenutno su placeholder — 9.90 € mesečno / 29.90 € za paket sa trenerom, u [`src/lib/pricing.ts`](../src/lib/pricing.ts). Struktura je već u obliku koji Polar vraća, pa zamena ne dira UI.
+2. **Naplata na iOS-u.** Apple pravilo 3.1.1 zabranjuje Polar checkout unutar WebView-a. Plan je „reader app" model za prvi release (iOS ne prikazuje cene uopšte), RevenueCat IAP kasnije. Zbog toga `getAccess()` mora ostati apstraktan nad *izvorom* pretplate — RevenueCat webhook kasnije piše u istu `subscriptions` tabelu i funkcija ne sme da zna koji je od ta dva.
 3. **Limit od 50 MB po videu.** To je plafon Supabase Free plana. Demo klip od 20-30 sekundi staje ako je kompresovan, duži ne. Rešava se Pro planom ili prelaskom na Mux.
-4. **Mejl servis.** Supabase-ov ugrađeni mailer šalje 2 mejla na sat i završava u spamu. Ok za test, mora Resend pre pravih korisnika (feature 18).
+4. **Mejl servis.** Supabase-ov ugrađeni mailer šalje 2 mejla na sat i završava u spamu. Ok za test, mora Resend pre pravih korisnika (feature 17).
 5. **Domen.** Trenutno `fit-compas.vercel.app`. Pravi domen se kači kad se odluči.
 6. **Email šabloni u Supabase-u.** Još nisu prebačeni na `{{ .TokenHash }}` oblik — dok se ne prebace, potvrda mejla radi samo ako se link otvori u istom pregledaču u kom je korisnik kliknuo „Napravi nalog". Uputstvo je u [SUPABASE-SETUP.md](SUPABASE-SETUP.md), korak 4b.
 
