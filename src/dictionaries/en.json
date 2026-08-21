@@ -165,5 +165,85 @@
     "loading": "Loading…",
     "back": "Back",
     "soon": "Soon"
+  },
+  "auth": {
+    "aside": {
+      "title": "Your plan is waiting",
+      "body": "Log in and pick up where you left off.",
+      "point1": "A video with every exercise",
+      "point2": "Training laid out day by day",
+      "point3": "Progress you measure, not remember"
+    },
+    "login": {
+      "title": "Log in",
+      "subtitle": "Welcome back. Get back to training.",
+      "email": "Email address",
+      "password": "Password",
+      "submit": "Log in",
+      "submitting": "Logging in…",
+      "forgot": "Forgot your password?",
+      "noAccount": "No account yet?",
+      "signupLink": "Create one"
+    },
+    "signup": {
+      "title": "Create an account",
+      "subtitle": "A minute of setup, then your first session.",
+      "fullName": "Full name",
+      "email": "Email address",
+      "password": "Password",
+      "passwordHint": "At least 8 characters.",
+      "submit": "Create account",
+      "submitting": "Creating account…",
+      "hasAccount": "Already have an account?",
+      "loginLink": "Log in",
+      "terms": "By creating an account you accept the terms of service and privacy policy."
+    },
+    "forgot": {
+      "title": "Reset your password",
+      "subtitle": "We'll email you a link. Takes five minutes.",
+      "email": "Email address",
+      "submit": "Send the link",
+      "submitting": "Sending…",
+      "back": "Back to log in",
+      "sentTitle": "Check your email",
+      "sentBody": "If an account exists for that address, a reset link is on its way. Check your spam folder too."
+    },
+    "reset": {
+      "title": "New password",
+      "subtitle": "Set a new password and you're done.",
+      "password": "New password",
+      "confirmPassword": "Repeat password",
+      "submit": "Save password",
+      "submitting": "Saving…"
+    },
+    "checkEmail": {
+      "title": "Confirm your email",
+      "body": "We sent you a confirmation link. Open it and your account is live.",
+      "hint": "Didn't arrive? Check spam before trying again."
+    },
+    "errors": {
+      "not_configured": "The database isn't connected yet. This is in progress — try again in a few minutes.",
+      "invalid_credentials": "Wrong email address or password.",
+      "email_not_confirmed": "This account isn't confirmed yet. Open the link in your email.",
+      "email_taken": "An account with this address already exists.",
+      "weak_password": "Password must be at least 8 characters.",
+      "invalid_email": "That email address isn't valid.",
+      "passwords_mismatch": "The passwords don't match.",
+      "rate_limited": "Too many attempts. Wait a minute and try again.",
+      "invalid_link": "That link expired or was already used. Request a new one.",
+      "unknown": "Something broke. Try again."
+    }
+  },
+  "dashboard": {
+    "greeting": "Hello",
+    "placeholderTitle": "Your dashboard lands here",
+    "placeholderBody": "Today's workout, the week's schedule and your progress. We're building in order — the exercise library is next.",
+    "signedInAs": "Signed in as",
+    "signOut": "Sign out",
+    "roleAdmin": "Administrator",
+    "roleClient": "Client",
+    "emailVerified": "Email confirmed",
+    "emailPending": "Email not confirmed",
+    "noProfile": "The account exists but no profile row was created. Run the profiles table and trigger SQL."
   }
 }

@@ -2,7 +2,10 @@ import { match as matchLocale } from "@formatjs/intl-localematcher";
 import Negotiator from "negotiator";
 import { NextResponse, type NextRequest } from "next/server";
 
+import { isAuthPath, isProtectedPath, stripLocale } from "@/lib/auth/routes";
 import { defaultLocale, locales } from "@/lib/i18n/config";
+import { isSupabaseConfigured } from "@/lib/supabase/env";
+import { refreshSession, withSessionCookies } from "@/lib/supabase/proxy";
 
 const LOCALE_COOKIE = "fc_locale";
 
@@ -31,20 +34,44 @@ function resolveLocale(request: NextRequest): string {
   }
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   const hasLocale = locales.some(
     (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
   );
 
-  if (hasLocale) return NextResponse.next();
+  // Locale first, and return early. The redirected request runs through here
+  // again and gets its session refreshed then.
+  if (!hasLocale) {
+    const locale = resolveLocale(request);
+    const url = request.nextUrl.clone();
+    url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
+    return NextResponse.redirect(url);
+  }
 
-  const locale = resolveLocale(request);
-  const url = request.nextUrl.clone();
-  url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
+  // Before the keys land, the marketing pages still have to work.
+  if (!isSupabaseConfigured()) return NextResponse.next();
 
-  return NextResponse.redirect(url);
+  const locale = pathname.split("/")[1];
+  const path = stripLocale(pathname);
+  const { response, user } = await refreshSession(request);
+
+  if (!user && isProtectedPath(path)) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${locale}/login`;
+    url.searchParams.set("next", pathname);
+    return withSessionCookies(NextResponse.redirect(url), response);
+  }
+
+  if (user && isAuthPath(path)) {
+    const url = request.nextUrl.clone();
+    url.pathname = `/${locale}/dashboard`;
+    url.search = "";
+    return withSessionCookies(NextResponse.redirect(url), response);
+  }
+
+  return response;
 }
 
 export const config = {

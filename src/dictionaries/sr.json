@@ -165,5 +165,85 @@
     "loading": "Učitavanje…",
     "back": "Nazad",
     "soon": "Uskoro"
+  },
+  "auth": {
+    "aside": {
+      "title": "Tvoj plan te čeka",
+      "body": "Prijavi se i nastavi tamo gde si stao.",
+      "point1": "Video uz svaku vežbu",
+      "point2": "Trening raspoređen po danima",
+      "point3": "Napredak koji se meri, ne pamti"
+    },
+    "login": {
+      "title": "Prijava",
+      "subtitle": "Dobrodošao nazad. Nastavi trening.",
+      "email": "Email adresa",
+      "password": "Lozinka",
+      "submit": "Prijavi se",
+      "submitting": "Prijavljivanje…",
+      "forgot": "Zaboravio si lozinku?",
+      "noAccount": "Nemaš nalog?",
+      "signupLink": "Napravi ga"
+    },
+    "signup": {
+      "title": "Napravi nalog",
+      "subtitle": "Minut posla, pa prvi trening.",
+      "fullName": "Ime i prezime",
+      "email": "Email adresa",
+      "password": "Lozinka",
+      "passwordHint": "Najmanje 8 karaktera.",
+      "submit": "Napravi nalog",
+      "submitting": "Pravljenje naloga…",
+      "hasAccount": "Već imaš nalog?",
+      "loginLink": "Prijavi se",
+      "terms": "Pravljenjem naloga prihvataš uslove korišćenja i politiku privatnosti."
+    },
+    "forgot": {
+      "title": "Reset lozinke",
+      "subtitle": "Pošaljemo ti link na mejl. Traje pet minuta.",
+      "email": "Email adresa",
+      "submit": "Pošalji link",
+      "submitting": "Slanje…",
+      "back": "Nazad na prijavu",
+      "sentTitle": "Proveri mejl",
+      "sentBody": "Ako nalog sa tom adresom postoji, link za reset lozinke je upravo poslat. Proveri i spam folder."
+    },
+    "reset": {
+      "title": "Nova lozinka",
+      "subtitle": "Upiši novu lozinku i gotovo.",
+      "password": "Nova lozinka",
+      "confirmPassword": "Ponovi lozinku",
+      "submit": "Sačuvaj lozinku",
+      "submitting": "Čuvanje…"
+    },
+    "checkEmail": {
+      "title": "Potvrdi mejl adresu",
+      "body": "Poslali smo ti link za potvrdu. Otvori ga i nalog je aktivan.",
+      "hint": "Nije stigao? Proveri spam folder pre nego što probaš ponovo."
+    },
+    "errors": {
+      "not_configured": "Baza još nije povezana. Ovo je u toku — pokušaj ponovo za koji minut.",
+      "invalid_credentials": "Pogrešna email adresa ili lozinka.",
+      "email_not_confirmed": "Nalog još nije potvrđen. Otvori link iz mejla.",
+      "email_taken": "Nalog sa ovom adresom već postoji.",
+      "weak_password": "Lozinka mora imati najmanje 8 karaktera.",
+      "invalid_email": "Ova email adresa nije ispravna.",
+      "passwords_mismatch": "Lozinke se ne poklapaju.",
+      "rate_limited": "Previše pokušaja. Sačekaj minut pa probaj ponovo.",
+      "invalid_link": "Link je istekao ili je već iskorišćen. Zatraži novi.",
+      "unknown": "Nešto je puklo. Pokušaj ponovo."
+    }
+  },
+  "dashboard": {
+    "greeting": "Zdravo",
+    "placeholderTitle": "Ovde stiže tvoj dashboard",
+    "placeholderBody": "Trenutni trening, raspored za nedelju i napredak. Gradimo redom — biblioteka vežbi je sledeća na redu.",
+    "signedInAs": "Prijavljen kao",
+    "signOut": "Odjavi se",
+    "roleAdmin": "Administrator",
+    "roleClient": "Klijent",
+    "emailVerified": "Mejl potvrđen",
+    "emailPending": "Mejl nije potvrđen",
+    "noProfile": "Nalog postoji, ali profil nije napravljen. Pokreni SQL skriptu za profiles tabelu i trigger."
   }
 }

@@ -10,13 +10,16 @@
   },
   "dependencies": {
     "@formatjs/intl-localematcher": "^0.8.13",
+    "@supabase/ssr": "^0.12.4",
+    "@supabase/supabase-js": "^2.112.3",
     "clsx": "^2.1.1",
     "lucide-react": "^1.33.0",
     "negotiator": "^1.1.0",
     "next": "16.2.4",
     "react": "19.2.4",
     "react-dom": "19.2.4",
-    "tailwind-merge": "^3.6.0"
+    "tailwind-merge": "^3.6.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
