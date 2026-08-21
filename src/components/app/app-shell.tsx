@@ -2,12 +2,14 @@ import { LogOut, Shield } from "lucide-react";
 
 import { AppNavLinks, AppTabBar } from "@/components/app/app-nav";
 import { TimezoneProbe } from "@/components/app/timezone-probe";
+import { NotificationBell } from "@/components/notifications/notification-bell";
 import { LocaleSwitcher } from "@/components/site/locale-switcher";
 import { Logo } from "@/components/site/logo";
 import { Button, ButtonLink } from "@/components/ui/button";
 import { signOutAction } from "@/lib/auth/actions";
 import { getDashboardCopy } from "@/lib/dashboard/copy";
 import type { Locale } from "@/lib/i18n/config";
+import { getNotificationsCopy } from "@/lib/notifications/copy";
 import { cn } from "@/lib/utils";
 
 /**
@@ -59,6 +61,14 @@ export function AppShell({
         </div>
 
         <div className="flex items-center gap-1.5">
+          {/* Feature 15. In the header on every screen including the runner:
+              the tab bar is already five items wide and the one place a
+              notification must never be is behind a menu. */}
+          <NotificationBell
+            lang={lang}
+            label={getNotificationsCopy(lang).inbox.bell}
+          />
+
           {isAdmin ? (
             <ButtonLink href={`/${lang}/admin`} variant="secondary" size="sm">
               <Shield className="size-4" />

@@ -6,7 +6,7 @@
 
 **Live:** https://fit-compas.vercel.app · **Repo:** https://github.com/humantrop/fit-compas
 
-Poslednje ažurirano: 22.08.2026. · završen feature 14 — napredak (merenja, fotografije, grafikoni)
+Poslednje ažurirano: 22.08.2026. · završen feature 15 — obaveštenja (centar, zakazivanje, ponavljanje, mejl)
 (05–11 su stigli paralelno, svaki iz svoje sesije)
 
 ---
@@ -30,6 +30,7 @@ Poslednje ažurirano: 22.08.2026. · završen feature 14 — napredak (merenja, 
 | 12 | Klijenti — lista, profil, dodela programa, raspored, beleške | ✅ |
 | 13 | Moj plan — kalendar klijenta, označavanje urađenog, pomeranje termina | ✅ · „Počni trening" čeka `dbRunnerSource` |
 | 14 | Napredak — merenja, fotografije, grafikoni, niz odrađenih dana | ✅ |
+| 15 | Obaveštenja — centar, zakazivanje, ponavljanje, mejl | ✅ · mejl čeka `RESEND_API_KEY` (feature 17) |
 
 ### Šta konkretno radi
 
@@ -147,6 +148,32 @@ Sve nosi migracija [`supabase/migrations/0014_progress.sql`](../supabase/migrati
 
 **Šta ovde još nije uniformno:** tonaža na kartici „Ukupno" je i dalje u kilogramima za svakoga. `formatVolume` je zajednički pomoćnik iz feature-a 12 i koristi ga i dashboard, pa prelazak na funte znači izmenu njegovog potpisa na svim pozivima — to ide sa feature-om 16, koji ionako uvodi prekidač za jedinice.
 
+**Obaveštenja.** `/[lang]/admin/notifications` za trenera i `/[lang]/notifications` za klijenta, plus zvonce sa brojem nepročitanih u zaglavlju klijentskog dela.
+
+Trener piše poruku na sva tri jezika, bira kome ide, kada ide i da li ide i na mejl. „Kada" ima četiri oblika: odmah, jednom kasnije, svaki dan i odabranim danima u nedelji. Ispod forme piše kada bi to prvi put sletelo — i to nije procena, nego ista funkcija `nextRun` kojom dispečer pomera kursor, uvezena u komponentu. Zato [`src/lib/notifications/schedule.ts`](../src/lib/notifications/schedule.ts) nema nijedan serverski uvoz.
+
+**Dve tabele, i podela je cela zamisao.** `notification_messages` je ono što je trener *sastavio*: tekst, pravilo kome ide, raspored. `notifications` je ono što je neko *dobio* — jedan red po čoveku po slanju, sa tekstom već prevedenim na njegov jezik i zamrznutim. Jeftiniji oblik je jedna tabela i spajanje pri čitanju, i puca drugog dana: publika je pravilo, a pravila se menjaju pod nogama — klijent koji u utorak završi plan tiho bi ispao iz publike ponedeljkove poruke i izgubio obaveštenje koje je već pročitao. Zamrzavanje je i ono što drži tekst na miru: ispravka slovne greške u nedeljnom podsetniku ne sme da prepiše ono što je prošle nedelje otišlo.
+
+**Publika je pravilo, ne spisak.** Svi, oni sa planom, oni bez plana, oni koji su utihnuli (bez završenog treninga 14 dana), ili jedan klijent. Razrešava se u ide-jeve pri svakom slanju, u [`src/lib/notifications/audience.ts`](../src/lib/notifications/audience.ts). Birač koji bi „utihnule" raširio u čekirane kućice zaledio bi odgovor na dan pisanja — a to je jedina stvar koju ta publika ne sme da uradi.
+
+**Raspored se pamti kao zidni sat, ne kao trenutak.** `time_of_day` plus `time_zone`, a instant se preračunava pri svakom pomeranju. Da je upisan trenutak pa se dodavalo 24 sata, podsetnik od 09:00 bi dvaput godišnje odlutao za sat — a to je tačno vreme kad je navika najkrhkija. Provereno na 30 uzastopnih slanja preko jesenje promene: svih 30 padne na 09:00.
+
+**Sve je idempotentno.** Isporuke ulaze uz jedinstveni indeks `(message_id, user_id, occurrence_key)`, a pomeranje kursora je compare-and-swap nad `run_count`. Zato dispečer sme da se pokrene sa više strana odjednom: cron, dugme „Pošalji sad", i samo otvaranje ekrana. Najgori ishod je uzalud obavljen posao, nikad dvaput poslato obaveštenje.
+
+**Dva prolaza, namerno razdvojena.** Prvi pomera rasporede i upisuje redove u sanduče — jeftin, i jedino to klijent zaista čeka. Drugi uzima redove koji već postoje i šalje mejlove — spor, razgovara sa trećom stranom i sme da padne a da obaveštenje ne padne s njim. Cron radi oba; render stranice radi samo prvi, pa nijedno učitavanje ne čeka mejl server.
+
+**Mejl je iza interfejsa**, kao `VideoProvider` i `getAccess()`. Nema lažnog transporta: kad ništa nije podešeno `getMailer()` vraća `null`, red se obeleži kao `none` umesto da se stavi u red čekanja, a admin ekran to piše. Stub koji beleži u konzolu i javlja uspeh ostavio bi tabelu punu redova koji tvrde da je mejl otišao — pa bi baza lagala prvi put kad neko pita „je li stiglo?". Feature 17 menja koji je transport upisan, ne nijedno mesto poziva.
+
+Sat je Vercel Cron, [`vercel.json`](../vercel.json) → `/api/notifications/dispatch` na svakih 15 minuta. Ruta prihvata `Authorization: Bearer $CRON_SECRET` ili prijavljenog admina; dok `CRON_SECRET` nije postavljen, prima samo admina — dispečer koji svako može da pokrene je način da nestane tuđa mejl kvota. **Na Hobby planu Vercel pušta cron jednom dnevno**, i zato dva otvora postoje: ekran obaveštenja i klijentovo sanduče sami pozovu prvi prolaz, a u admin listi stoji dugme „Proveri raspored".
+
+Sistemska obaveštenja nemaju poruku iza sebe i pišu pravo u sanduče — prvo od njih je „trener ti je dodelio novi plan", zakačeno na `assignProgramAction` iz feature-a 12. Ne sme da baci grešku: plan je dodeljen svakako, a klijent koji dobije plan bez najave prolazi mnogo bolje od onog čija je dodela poništena jer red u sandučetu nije hteo da se upiše.
+
+Sanduče ne označava ništa pročitanim samim prikazom. Ko otvori sanduče, vidi četiri nove poruke i vrati telefon u džep — nije ih pročitao, a značka koja se čisti od pogleda je značka kojoj niko ne veruje. Svaki red je forma, ne link: otvaranje radi dve stvari (označi pročitano i odvedi gde vodi), pa radi i bez ijedne linije JavaScript-a — ovaj ekran se otvara u teretani, na telefonu, na dve crtice signala. Odredište se čita iz reda u bazi a ne iz forme, da podmetnut POST ne bi napravio open redirect.
+
+Sve nosi migracija [`supabase/migrations/0015_notifications.sql`](../supabase/migrations/0015_notifications.sql), pisana ručno da bi RLS stigao u istoj migraciji koja pravi tabele (provera preko PostgREST-a vraća `[]` za obe). Obe tabele su i preko RLS-a samo za čitanje — svaki upis ide kroz Server Action na vezi koja RLS zaobilazi, pa nema legitimnog PostgREST upisa koji bi trebalo dozvoliti. Tabele su u `src/db/schema/notifications.ts` i još nisu izvezene iz `schema/index.ts` — isti dogovor koji drži runner, klijente, plan i napredak. Tekst je u [`src/lib/notifications/copy/`](../src/lib/notifications/copy/), tipizovan.
+
+**Šta ovde još ne radi:** mejl dok `RESEND_API_KEY` ne postoji, i klijent nema prekidač da mejlove ugasi — odluka je po poruci, kod trenera. Prekidač ide sa feature-om 16, koji ionako uvodi ekran podešavanja.
+
 ---
 
 ## Sledeći koraci
@@ -159,7 +186,7 @@ Svaka stavka je jedna sesija. Redosled je namerno takav da svaka gradi na pretho
 | **12** ✅ | **Klijenti (admin)** | Lista klijenata, profil, dodela programa, raspored po danima, beleške vidljive samo treneru | 08 |
 | **13** ✅ | **Moj plan (klijent)** | Kalendar sopstvenih treninga, označavanje kao urađeno, pomeranje termina | 12 |
 | **14** ✅ | **Napredak** | Merenja, progress fotografije, grafikoni kretanja, niz odrađenih dana | 13 |
-| **15** | **Notifikacije** | Notification centar, zakazivanje, ponavljanje, mejl obaveštenja | 12 |
+| **15** ✅ | **Notifikacije** | Notification centar, zakazivanje, ponavljanje, mejl obaveštenja | 12 |
 | **16** | **Nalog i podešavanja** | Profil, jedinice mere, jezik, promena lozinke | 11 |
 | **17** | **Mejl + poliranje** | Resend kao SMTP umesto Supabase mailera, mobilni prolaz kroz sve ekrane | 16 |
 | **18** | **Polar naplata** | Checkout, customer portal, webhook, popunjavanje `getAccess()`, paywall ekrani, upravljanje pretplatom u nalogu | 17 |
@@ -307,6 +334,12 @@ Mora vratiti `[]`.
 
 **Migracija ne sme da rekreira `profiles`.** Ta tabela je vlasništvo `supabase/migrations/0001`, gde dobija FK ka `auth.users` i RLS politike. `CREATE TABLE` iz Drizzle migracije je zakomentarisan.
 
+**Drizzle vraća `timestamptz` skraćen na milisekunde, pa poređenje sa kolonom nikad ne pogodi.** Postgres pamti mikrosekunde, a JS `Date` ne: `now()` upiše 23:40:17.853106 a nazad stigne 23:40:17.853. Compare-and-swap napisan kao `where next_run_at = <pročitana vrednost>` zato ne pogađa nijedan red — a izgleda ispravno i u tipovima i u kodu. Prva verzija dispečera obaveštenja je radila baš to: isporuke su sletale, kursor se nije pomerao, i svaki tik je iznova slao istu poruku uz izveštaj da nije stigla ni do koga. Optimistična brava ide nad celobrojnom kolonom (`run_count`), koja se vraća tačna.
+
+**Kolona sa vremenom iz `db.execute` nije pouzdano `Date`.** Drizzle svoje dekodere primenjuje samo na upite građene kroz query builder; sirov `` sql`` `` vraća ono što je drajver napravio, a za `timestamptz` to ume da bude string. `.toISOString()` nad tim pada u runtime-u dok tip tvrdi da ne može — ekran sandučeta je pao tačno na tome. Pomoćnik `iso()` postoji i u `lib/clients/queries.ts` i u `lib/notifications/queries.ts`; vredi ih spojiti kad paralelne sesije slegnu.
+
+**Vercel Cron na Hobby planu ide jednom dnevno.** Raspored `*/15 * * * *` u `vercel.json` je ono što piše, ali plan odlučuje koliko se stvarno izvršava. Feature koji se oslanja na cron mora imati i drugi put do istog posla — kod obaveštenja su to render ekrana (jeftin prolaz, bez mejla) i dugme u admin listi.
+
 ---
 
 ## Komande
@@ -316,6 +349,10 @@ npm run dev          # lokalno, http://localhost:3000 → /sr
 npm run build        # mora proći pre svakog push-a
 npm run lint
 npm run check:i18n   # sva tri rečnika moraju imati isto stablo ključeva
+
+# obaveštenja: ručno pokreni dispečer (isto što radi Vercel Cron)
+curl -H "authorization: Bearer $CRON_SECRET" \
+     https://fit-compas.vercel.app/api/notifications/dispatch
 
 npm run db:generate  # razlika šeme → drizzle/*.sql
 npm run db:migrate   # primeni migracije (koristi DIRECT_URL)

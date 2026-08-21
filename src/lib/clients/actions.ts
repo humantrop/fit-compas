@@ -6,7 +6,9 @@ import { z } from "zod";
 
 import { db } from "@/db/client";
 import { clientAssignments, clientNotes } from "@/db/schema/clients";
+import type { Translated } from "@/db/schema/i18n";
 import { getProfile } from "@/lib/auth/session";
+import { notifyPlanAssigned } from "@/lib/notifications/notify";
 
 import { getAdminTimeZone } from "./queries";
 import { dayKeyOf, isValidDayKey, type DayKey } from "./schedule";
@@ -113,8 +115,27 @@ export async function assignProgramAction(
     return fail("unknown");
   }
 
+  // Feature 15. Outside the transaction and unable to throw: the plan is
+  // assigned either way, and a client who gets their plan but not the notice is
+  // in a far better place than one whose assignment rolled back because an
+  // inbox row would not insert.
+  await notifyPlanAssigned(userId, await programTitleFor(programId));
+
   refresh();
   return SAVED;
+}
+
+/** The program's name in all three languages, for the notification text. */
+async function programTitleFor(programId: string): Promise<Translated> {
+  try {
+    const rows = await db.execute<{ title: Translated | null }>(sql`
+      select title from public.programs where id = ${programId}::uuid limit 1
+    `);
+
+    return [...rows][0]?.title ?? {};
+  } catch {
+    return {};
+  }
 }
 
 /* ------------------------------------------------------------------ status */
