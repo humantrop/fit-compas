@@ -57,21 +57,25 @@ export async function listPrograms(): Promise<ProgramSummary[]> {
       daysPerWeek: programs.daysPerWeek,
       isPublished: programs.isPublished,
       createdAt: programs.createdAt,
+      // Spelled out rather than interpolated from the table objects: inside a
+      // `sql` template Drizzle emits column names unqualified, so `${programs.id}`
+      // next to a joined program_weeks becomes a bare `"id"` and Postgres
+      // rejects the whole query as ambiguous.
       weekCount: sql<number>`(
-        select count(*)::int from ${programWeeks}
-        where ${programWeeks.programId} = ${programs.id}
+        select count(*)::int from program_weeks w
+        where w.program_id = programs.id
       )`,
       filledDays: sql<number>`(
-        select count(*)::int from ${programDays}
-        join ${programWeeks} on ${programWeeks.id} = ${programDays.weekId}
-        where ${programWeeks.programId} = ${programs.id}
-          and ${programDays.workoutId} is not null
+        select count(*)::int
+        from program_days d
+        join program_weeks w on w.id = d.week_id
+        where w.program_id = programs.id and d.workout_id is not null
       )`,
       restDays: sql<number>`(
-        select count(*)::int from ${programDays}
-        join ${programWeeks} on ${programWeeks.id} = ${programDays.weekId}
-        where ${programWeeks.programId} = ${programs.id}
-          and ${programDays.isRest}
+        select count(*)::int
+        from program_days d
+        join program_weeks w on w.id = d.week_id
+        where w.program_id = programs.id and d.is_rest
       )`,
     })
     .from(programs)
