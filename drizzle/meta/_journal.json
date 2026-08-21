@@ -15,6 +15,13 @@
       "when": 1787315203290,
       "tag": "0001_enable_rls_on_content",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1787317588951,
+      "tag": "0008_programs",
+      "breakpoints": true
     }
   ]
 }

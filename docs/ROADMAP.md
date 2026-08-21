@@ -6,7 +6,7 @@
 
 **Live:** https://fit-compas.vercel.app · **Repo:** https://github.com/humantrop/fit-compas
 
-Poslednje ažurirano: 21.08.2026. · završen feature 05 — admin shell i konfiguracija
+Poslednje ažurirano: 21.08.2026. · završen feature 08 — programi
 
 ---
 
@@ -20,6 +20,7 @@ Poslednje ažurirano: 21.08.2026. · završen feature 05 — admin shell i konfi
 | 03 | Autentikacija — Supabase, prijava/registracija/reset, zaštita ruta | ✅ |
 | 04 | Baza — Drizzle šema, taksonomije, RLS | ✅ |
 | 05 | Admin shell + Configuration | ✅ |
+| 08 | Programi — nedelje × dani, dani odmora | ✅ · birač treninga čeka 07 |
 
 ### Šta konkretno radi
 
@@ -37,6 +38,10 @@ Poslednje ažurirano: 21.08.2026. · završen feature 05 — admin shell i konfi
 
 Dve stvari koje ovaj ekran namerno **ne** radi: ne briše i ne menja skraćenicu. Brisanje bi ili srušilo strani ključ ili kaskadno pojelo oznake na gotovim vežbama, pa ugašena stavka samo nestaje iz svih birača a postojeće oznake ostaju. Skraćenica je ono na šta pokazuju linkovi, seed i sačuvani filteri — preimenovanje je menja jedino ako se to dozvoli, pa se ne dozvoljava.
 
+**Programi.** `/[lang]/admin/programs` — lista sa pretragom i filterom objavljeno/u izradi, i editor koji je mreža: nedelje jedna ispod druge, u svakoj `days_per_week` polja. Polje je trening, odmor ili prazno — a prazno i odmor su namerno različita stanja, jer „još nisam odlučio“ nije isto što i „ovaj dan se ne trenira“. Nedelja se dodaje, duplira (sa svim danima i oznakama odmora), pomera strelicama i briše; program se objavljuje i vraća u izradu kao i vežba.
+
+Napravljeno je paralelno sa feature-om 07, pa `program_days.workout_id` nema Drizzle relaciju — pravi strani ključ dodaje migracija čim `public.workouts` postoji, a [`src/lib/programs/workout-source.ts`](../src/lib/programs/workout-source.ts) pita bazu u runtime-u da li ta tabela postoji. Dok ne postoji, birač treninga stoji zaključan uz poruku, a odmor, beleške i cela mreža rade. Kad 07 sleti, birač se popuni sam — bez izmene koda ovde.
+
 ---
 
 ## Sledeći koraci
@@ -47,9 +52,8 @@ Svaka stavka je jedna sesija. Redosled je namerno takav da svaka gradi na pretho
 |---|---|---|---|
 | **06** | **Vežbe + video** | CRUD vežbi, upload videa direktno u Supabase Storage, potpisani URL za gledanje, admin lista sa filterima | 05 |
 | **07** | **Workout builder** | Sklapanje treninga: zagrevanje / grupe sa rundama / smirivanje, reps vs vreme, RPE i tempo, tri nivoa pauze, dinamička polja po opremi, live preview | 06 |
-| **08** | **Programi** | Višenedeljni programi — nedelje × dani → treninzi, sa danima odmora | 07 |
 | **09** | **Biblioteka za klijenta** | Pretraga i filtriranje vežbi, treninga i programa iz ugla vežbača | 06 |
-| **10** ✅ | **Workout runner** | Izvođenje treninga: tajmer, runde, pauze, video, beleženje serija i težina | 07 |
+| **10** | **Workout runner** | Izvođenje treninga: tajmer, runde, pauze, video, beleženje serija i težina | 07 |
 | **11** | **Dashboard klijenta** | Bento dashboard — današnji trening, nedeljni raspored, niz odrađenih dana, statistika | 10 |
 | **12** | **Klijenti (admin)** | Lista klijenata, profil, dodela programa, raspored po danima, beleške vidljive samo treneru | 08 |
 | **13** | **Moj plan (klijent)** | Kalendar sopstvenih treninga, označavanje kao urađeno, pomeranje termina | 12 |
@@ -69,29 +73,6 @@ Prvo se gradi sadržaj (05–08), pa klijentska strana koja ga troši (09–11),
 Zato [`src/lib/billing/access.ts`](../src/lib/billing/access.ts) **već postoji**. `getAccess()` za sada uvek vraća „ima pristup" (polje `bypassed: true`), ali je zove svaka zaključana ruta od trenutka kad se piše. Feature 18 menja telo te jedne funkcije, ne deset ruta.
 
 > **Pravilo za svaku sesiju od 09 nadalje:** ekran koji prikazuje plaćeni sadržaj mora zvati `getAccess()`, čak i dok ta funkcija svakoga propušta. Ako se preskoči, feature 18 postaje refaktor umesto jedne izmene.
-
----
-
-### Feature 10 — urađeno, uz jedan šav koji čeka 07
-
-Runner živi na `/{jezik}/workout` — lista treninga i sam ekran izvođenja: tajmer
-po satu a ne po otkucajima (zaključan telefon se vraća sa tačnim vremenom), runde,
-tri nivoa pauze, video, upis serija i kilaže, nastavak prekinutog treninga i
-sažetak sa RPE i beleškom. Ekran drži budnim `wakeLock` dok trening traje.
-
-Pisan je pre feature-a 07, pa plan ne čita iz baze nego kroz šav u
-[`src/lib/runner/source.ts`](../src/lib/runner/source.ts). Sada vraća tri ogledna
-treninga. **Feature 07: dodati `dbRunnerSource` i vratiti ga iz `getRunnerSource()`
-— ništa u `components/runner/` se ne menja.**
-
-Log ide u `workout_sessions` i `set_logs`, sa RLS-om u istoj migraciji
-[`supabase/migrations/0010_workout_runner.sql`](../supabase/migrations/0010_workout_runner.sql)
-(primenjena na živu bazu, PostgREST provera vraća `[]`). Totali se ne sabiraju u
-hodu nego se preračunavaju iz redova, pa dvaput poslata serija ne broji duplo.
-
-Dve stvari su namerno odvojene dok paralelne sesije ne slegnu, obe objašnjene na
-mestu: tabele nisu izvezene iz `src/db/schema/index.ts`, a prevodi runnera su u
-`src/dictionaries/runner/*.json` umesto u tri glavna rečnika.
 
 ---
 
