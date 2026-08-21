@@ -1,0 +1,169 @@
+{
+  "meta": {
+    "title": "Fit Compas — treniraj sa planom, ne sa nagađanjem",
+    "description": "Video biblioteka vežbi, treninzi sklopljeni do poslednje runde i program koji ti trener piše lično. Sve na jednom mestu, na telefonu."
+  },
+  "nav": {
+    "features": "Mogućnosti",
+    "how": "Kako radi",
+    "pricing": "Cene",
+    "login": "Prijava",
+    "signup": "Počni sada",
+    "openMenu": "Otvori meni",
+    "closeMenu": "Zatvori meni"
+  },
+  "hero": {
+    "eyebrow": "Trening vođen, ne improvizovan",
+    "title": "Treniraj sa planom,",
+    "titleAccent": "ne sa nagađanjem",
+    "subtitle": "Svaka vežba ima video. Svaki trening ima runde, pauze i tempo. Svaki program piše trener za tebe — ne generiše ga algoritam iz šablona.",
+    "ctaPrimary": "Počni danas",
+    "ctaSecondary": "Pogledaj kako radi",
+    "note": "Otkaži kad hoćeš. Bez ugovora.",
+    "cardLabel": "Današnji trening",
+    "cardTitle": "Gornji deo — Guranje",
+    "cardMeta": "48 min · 9 vežbi · Srednji nivo",
+    "cardProgress": "4 od 9 završeno",
+    "cardCta": "Nastavi trening",
+    "exercise1": "Bench presa",
+    "exercise2": "Veslanje sa šipkom",
+    "exercise3": "Razvlačenje sa girjama"
+  },
+  "stats": {
+    "exercises": "vežbi sa videom",
+    "workouts": "gotovih treninga",
+    "programs": "nedeljnih programa",
+    "support": "odgovor trenera"
+  },
+  "features": {
+    "eyebrow": "Šta dobijaš",
+    "title": "Sve što treneru treba da te vodi, i tebi da izvedeš",
+    "subtitle": "Bez raštrkanih PDF-ova, bez snimaka po WhatsApp grupama, bez pogađanja koliko serija ide.",
+    "items": [
+      {
+        "title": "Video za svaku vežbu",
+        "body": "Snimak iz ugla iz kog se vidi šta radiš pogrešno. Bez traženja po YouTube-u i bez tri različita objašnjenja."
+      },
+      {
+        "title": "Treninzi sklopljeni do detalja",
+        "body": "Zagrevanje, glavni deo po grupama i rundama, istezanje. Pauza između vežbi, između rundi i između grupa — sve upisano."
+      },
+      {
+        "title": "Program koji piše čovek",
+        "body": "Trener ti dodeljuje nedeljni plan po danima. Vidi šta si uradio, šta si preskočio i menja plan u hodu."
+      },
+      {
+        "title": "Tajmer koji te vodi",
+        "body": "Runde, pauze i prelazi idu sami. Ekran ostaje upaljen, telefon vibrira na promenu — ne moraš da ga diraš znojavim rukama."
+      },
+      {
+        "title": "Napredak koji se vidi",
+        "body": "Težine, mere, fotografije i niz odrađenih dana. Grafikoni pokazuju kretanje, ne samo poslednji broj."
+      },
+      {
+        "title": "Radi na telefonu",
+        "body": "Pravljeno prvo za ekran koji držiš u teretani, pa tek onda za desktop. Ne obrnuto."
+      }
+    ]
+  },
+  "how": {
+    "eyebrow": "Kako radi",
+    "title": "Tri koraka do prvog treninga",
+    "steps": [
+      {
+        "title": "Napravi nalog",
+        "body": "Upišeš cilj, nivo i opremu koju imaš. Traje minut."
+      },
+      {
+        "title": "Dobiješ plan",
+        "body": "Trener ti dodeljuje program prilagođen tome gde si sada, sa treninzima raspoređenim po danima."
+      },
+      {
+        "title": "Treniraj i beleži",
+        "body": "Otvoriš dan, pratiš video i tajmer, upišeš težine. Trener vidi rezultat i podešava dalje."
+      }
+    ]
+  },
+  "pricing": {
+    "eyebrow": "Cene",
+    "title": "Jedna pretplata, ceo sadržaj",
+    "subtitle": "Bez skrivenih nivoa i bez plaćanja po programu.",
+    "monthly": "Mesečno",
+    "yearly": "Godišnje",
+    "yearlyBadge": "2 meseca gratis",
+    "perMonth": "/ mesec",
+    "popular": "Najčešći izbor",
+    "cta": "Uzmi pretplatu",
+    "plans": [
+      {
+        "name": "Osnovni",
+        "tagline": "Za samostalan rad",
+        "features": [
+          "Cela video biblioteka vežbi",
+          "Svi gotovi treninzi",
+          "Tajmer i beleženje serija",
+          "Praćenje napretka i mera"
+        ]
+      },
+      {
+        "name": "Sa trenerom",
+        "tagline": "Za rad po programu",
+        "features": [
+          "Sve iz Osnovnog paketa",
+          "Program pisan lično za tebe",
+          "Nedeljni raspored po danima",
+          "Trener prati izvršenje i koriguje",
+          "Direktna poruka treneru"
+        ]
+      }
+    ]
+  },
+  "faq": {
+    "eyebrow": "Pitanja",
+    "title": "Ono što se najčešće pita",
+    "items": [
+      {
+        "q": "Treba li mi teretana?",
+        "a": "Ne. Vežbe su označene po opremi, pa se program pravi za ono što imaš — od pune teretane do samo sopstvene težine u sobi."
+      },
+      {
+        "q": "Mogu li da otkažem?",
+        "a": "Da, u svakom trenutku iz svog naloga. Pristup ti ostaje do kraja plaćenog perioda, bez razgovora sa podrškom."
+      },
+      {
+        "q": "Šta ako sam početnik?",
+        "a": "Svaka vežba ima video i nivo težine, a program počinje od tvog nivoa. Trener ga menja kako napreduješ."
+      },
+      {
+        "q": "Radi li na telefonu?",
+        "a": "Da, i pravljeno je prvo za telefon. Mobilna aplikacija za Android i iPhone stiže uskoro."
+      },
+      {
+        "q": "Imam povredu ili zdravstveni problem.",
+        "a": "Upišeš to u profil pri registraciji. Trener to vidi pre nego što ti napiše program i izbegava sporne pokrete."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Sledeći trening može da počne za pet minuta",
+    "subtitle": "Napravi nalog, reci gde si sada, i dobij plan koji ima smisla.",
+    "button": "Počni danas"
+  },
+  "footer": {
+    "tagline": "Treniraj sa planom, ne sa nagađanjem.",
+    "product": "Proizvod",
+    "company": "Informacije",
+    "legal": "Pravno",
+    "terms": "Uslovi korišćenja",
+    "privacy": "Politika privatnosti",
+    "contact": "Kontakt",
+    "about": "O nama",
+    "rights": "Sva prava zadržana."
+  },
+  "common": {
+    "language": "Jezik",
+    "loading": "Učitavanje…",
+    "back": "Nazad",
+    "soon": "Uskoro"
+  }
+}

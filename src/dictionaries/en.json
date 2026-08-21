@@ -1,0 +1,169 @@
+{
+  "meta": {
+    "title": "Fit Compas — train with a plan, not a guess",
+    "description": "A video library of exercises, workouts built down to the last round, and a program written for you by a coach. All in one place, on your phone."
+  },
+  "nav": {
+    "features": "Features",
+    "how": "How it works",
+    "pricing": "Pricing",
+    "login": "Log in",
+    "signup": "Get started",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "hero": {
+    "eyebrow": "Coached, not improvised",
+    "title": "Train with a plan,",
+    "titleAccent": "not a guess",
+    "subtitle": "Every exercise has a video. Every workout has rounds, rest and tempo. Every program is written by a coach for you — not generated from a template.",
+    "ctaPrimary": "Start today",
+    "ctaSecondary": "See how it works",
+    "note": "Cancel anytime. No contract.",
+    "cardLabel": "Today's workout",
+    "cardTitle": "Upper Body — Push",
+    "cardMeta": "48 min · 9 exercises · Intermediate",
+    "cardProgress": "4 of 9 done",
+    "cardCta": "Resume workout",
+    "exercise1": "Bench press",
+    "exercise2": "Barbell row",
+    "exercise3": "Kettlebell flye"
+  },
+  "stats": {
+    "exercises": "exercises on video",
+    "workouts": "ready-made workouts",
+    "programs": "weekly programs",
+    "support": "coach response"
+  },
+  "features": {
+    "eyebrow": "What you get",
+    "title": "Everything a coach needs to guide you, and you need to execute",
+    "subtitle": "No scattered PDFs, no clips buried in group chats, no guessing how many sets to do.",
+    "items": [
+      {
+        "title": "A video for every exercise",
+        "body": "Shot from the angle that shows what you're doing wrong. No hunting on YouTube, no three conflicting explanations."
+      },
+      {
+        "title": "Workouts built to the detail",
+        "body": "Warmup, main work by groups and rounds, cooldown. Rest between exercises, between rounds and between groups — all written in."
+      },
+      {
+        "title": "A program written by a human",
+        "body": "Your coach assigns a weekly plan by day. They see what you did, what you skipped, and adjust as you go."
+      },
+      {
+        "title": "A timer that runs the session",
+        "body": "Rounds, rest and transitions advance on their own. The screen stays awake and the phone buzzes on every change — no touching it with sweaty hands."
+      },
+      {
+        "title": "Progress you can actually see",
+        "body": "Weights, measurements, photos and your streak. Charts show the trend, not just the last number you typed."
+      },
+      {
+        "title": "Built for the phone",
+        "body": "Designed first for the screen you hold in the gym, and only then for desktop. Not the other way around."
+      }
+    ]
+  },
+  "how": {
+    "eyebrow": "How it works",
+    "title": "Three steps to your first session",
+    "steps": [
+      {
+        "title": "Create an account",
+        "body": "Tell us your goal, your level and the equipment you have. Takes a minute."
+      },
+      {
+        "title": "Get your plan",
+        "body": "A coach assigns a program matched to where you are now, with workouts laid out day by day."
+      },
+      {
+        "title": "Train and log it",
+        "body": "Open the day, follow the video and the timer, log your weights. Your coach sees the result and adjusts what comes next."
+      }
+    ]
+  },
+  "pricing": {
+    "eyebrow": "Pricing",
+    "title": "One subscription, the whole library",
+    "subtitle": "No hidden tiers, no paying per program.",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "yearlyBadge": "2 months free",
+    "perMonth": "/ month",
+    "popular": "Most popular",
+    "cta": "Subscribe",
+    "plans": [
+      {
+        "name": "Self-guided",
+        "tagline": "Train on your own",
+        "features": [
+          "The full exercise video library",
+          "Every ready-made workout",
+          "Timer and set logging",
+          "Progress and measurement tracking"
+        ]
+      },
+      {
+        "name": "Coached",
+        "tagline": "Train on a program",
+        "features": [
+          "Everything in Self-guided",
+          "A program written for you personally",
+          "Weekly schedule laid out by day",
+          "Your coach reviews and corrects",
+          "Direct message to your coach"
+        ]
+      }
+    ]
+  },
+  "faq": {
+    "eyebrow": "Questions",
+    "title": "What people ask most",
+    "items": [
+      {
+        "q": "Do I need a gym?",
+        "a": "No. Exercises are tagged by equipment, so your program is built around what you actually have — from a full gym to bodyweight in a bedroom."
+      },
+      {
+        "q": "Can I cancel?",
+        "a": "Yes, any time from your account. You keep access until the end of the period you paid for, no support conversation required."
+      },
+      {
+        "q": "What if I'm a beginner?",
+        "a": "Every exercise has a video and a difficulty level, and your program starts at your level. Your coach moves it as you progress."
+      },
+      {
+        "q": "Does it work on a phone?",
+        "a": "Yes, and it was designed for the phone first. Mobile apps for Android and iPhone are coming."
+      },
+      {
+        "q": "I have an injury or health condition.",
+        "a": "You note it on your profile when you sign up. Your coach sees it before writing your program and works around the movements involved."
+      }
+    ]
+  },
+  "cta": {
+    "title": "Your next session could start in five minutes",
+    "subtitle": "Create an account, tell us where you are now, and get a plan that makes sense.",
+    "button": "Start today"
+  },
+  "footer": {
+    "tagline": "Train with a plan, not a guess.",
+    "product": "Product",
+    "company": "Company",
+    "legal": "Legal",
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "contact": "Contact",
+    "about": "About",
+    "rights": "All rights reserved."
+  },
+  "common": {
+    "language": "Language",
+    "loading": "Loading…",
+    "back": "Back",
+    "soon": "Soon"
+  }
+}
