@@ -6,6 +6,10 @@ actually got done. Clients subscribe to get access.
 
 **Live:** https://fit-compas.vercel.app
 
+**Where the project stands and what comes next: [docs/ROADMAP.md](docs/ROADMAP.md).**
+Read it before starting work — it carries the numbered feature list, the
+decisions already made, and the failure modes this codebase has already hit.
+
 ## Stack
 
 | Concern | Choice |
