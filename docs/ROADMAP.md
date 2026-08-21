@@ -145,6 +145,41 @@ Ništa od ovoga ne blokira rad, ali će morati odluka pre lansiranja.
 
 Ovo su stvari koje su već jednom pukle. Vredi ih pročitati pre nego što se dira odgovarajući deo.
 
+**Više sesija radi u istom radnom folderu, pa je `git` indeks zajednički.** Ako
+sesija uradi `git add`, a druga u međuvremenu commituje, u komit ode i tuđ
+nedovršen rad. Gore od toga: stablo napravljeno od starog `HEAD`-a pa
+commitovano na novi obriše sve što je u međuvremenu sletelo — tako je 24f292c
+pojeo ceo feature 10, a b291873 ga vratio. Recept koji radi:
+
+```bash
+export GIT_INDEX_FILE=/tmp/idx          # svoj indeks, ne dira zajednički
+PARENT=$(git rev-parse refs/heads/main) # roditelj se čita TU, ne ranije
+git read-tree "$PARENT"
+git update-index --add --cacheinfo 100644,<blob>,<putanja>   # samo svoji fajlovi
+git update-ref refs/heads/main "$(git commit-tree ...)" "$PARENT"  # CAS
+```
+
+Poslednji red je ključan: `git update-ref` sa očekivanom starom vrednošću
+odbije da pomeri granu ako je neko drugi u međuvremenu commitovao.
+
+**Zajednički fajl se sme commitovati samo kao „HEAD + moja izmena".** Rečnici,
+`db/schema/index.ts`, `admin-shell.tsx` i ROADMAP menja svaka sesija. Radna
+kopija tog fajla u datom trenutku sadrži i tuđe nedovršene izmene, pa se
+sadržaj za komit pravi tako što se `git show HEAD:<fajl>` ponovo obradi. Izmena
+mora ostati i u radnoj kopiji — ako se samo stage-uje, sledeća sesija je
+commitom vrati unazad.
+
+**Broj migracije se rezerviše po broju feature-a.** `drizzle/0008_programs.sql`,
+`supabase/migrations/0010_workout_runner.sql`. Dve sesije koje istovremeno
+puste `db:generate` obe dobiju `0002_*.sql`. Drizzle primenjuje migracije redom
+iz `_journal.json`, ne po imenu, pa rupa u numeraciji ništa ne košta.
+
+**`rm -rf` na Windows junction-u briše ono na šta pokazuje.** Junction ka
+`node_modules` napravljen radi izolovanog builda je pri brisanju odneo pravi
+`node_modules` i zaustavio sve sesije. Vraća se sa `npm ci`; junction se briše
+sa `rmdir` (bez `-r`).
+
+
 **`config.matcher` u Next 16 briše escape sekvence.** Napisano `.*\..*` postaje `.*..*`, što odgovara svakom neprazan putu. Negativni lookahead onda isključi celu aplikaciju, a proxy radi jedino na `/`. Izgleda ispravno jer locale redirect sa `/` i dalje radi. Filtriranje fajlova mora u kod. Kompajlirani matcher se proverava u `.next/server/functions-config-manifest.json`.
 
 **Svaka nova tabela u `public` mora dobiti RLS u istoj migraciji.** Supabase preko PostgREST-a izlaže celu šemu, pa je tabela bez RLS-a čitljiva i upisiva svakome ko ima publishable ključ — a taj ključ po dizajnu ide u browser. Provera pre pušanja:
