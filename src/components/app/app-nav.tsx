@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarDays, Dumbbell, House, LibraryBig } from "lucide-react";
+import { CalendarDays, Dumbbell, House, LibraryBig, TrendingUp } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -22,6 +22,7 @@ export type TabLabels = {
   plan: string;
   workouts: string;
   library: string;
+  progress: string;
 };
 
 type Item = {
@@ -38,6 +39,8 @@ function items(lang: Locale): Item[] {
     { key: "plan", href: `/${lang}/plan`, icon: CalendarDays, prefix: false },
     { key: "workouts", href: `/${lang}/workout`, icon: Dumbbell, prefix: true },
     { key: "library", href: `/${lang}/library`, icon: LibraryBig, prefix: true },
+    // Prefix matching: /sr/progress/photos still lights up this tab.
+    { key: "progress", href: `/${lang}/progress`, icon: TrendingUp, prefix: true },
   ];
 }
 

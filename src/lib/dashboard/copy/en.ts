@@ -15,6 +15,7 @@ export const en: DashboardCopy = {
       plan: "Plan",
       workouts: "Workouts",
       library: "Library",
+      progress: "Progress",
     },
   },
 

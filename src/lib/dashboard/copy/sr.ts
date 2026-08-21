@@ -16,6 +16,7 @@ export const sr: DashboardCopy = {
       plan: "Plan",
       workouts: "Treninzi",
       library: "Biblioteka",
+      progress: "Napredak",
     },
   },
 

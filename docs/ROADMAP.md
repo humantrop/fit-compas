@@ -6,7 +6,7 @@
 
 **Live:** https://fit-compas.vercel.app · **Repo:** https://github.com/humantrop/fit-compas
 
-Poslednje ažurirano: 21.08.2026. · završen feature 13 — moj plan (klijent)
+Poslednje ažurirano: 22.08.2026. · završen feature 14 — napredak (merenja, fotografije, grafikoni)
 (05–11 su stigli paralelno, svaki iz svoje sesije)
 
 ---
@@ -29,6 +29,7 @@ Poslednje ažurirano: 21.08.2026. · završen feature 13 — moj plan (klijent)
 | 11 | Dashboard klijenta — danas, nedelja, niz, statistika | ✅ · raspored stigao sa 13 |
 | 12 | Klijenti — lista, profil, dodela programa, raspored, beleške | ✅ |
 | 13 | Moj plan — kalendar klijenta, označavanje urađenog, pomeranje termina | ✅ · „Počni trening" čeka `dbRunnerSource` |
+| 14 | Napredak — merenja, fotografije, grafikoni, niz odrađenih dana | ✅ |
 
 ### Šta konkretno radi
 
@@ -40,7 +41,7 @@ Poslednje ažurirano: 21.08.2026. · završen feature 13 — moj plan (klijent)
 
 **Auth.** Registracija → potvrda mejla → prijava → zaštićena ruta → odjava, sve radi uživo. Postoji i reset lozinke. Greške se vraćaju kao kodovi pa se prevode u rečniku — korisnik vidi srpsku poruku iako Supabase odgovara engleski.
 
-**Baza.** 18 tabela, 8 enuma, PostgreSQL 17.6. Seed: 30 komada opreme, 23 mišićne grupe sa hijerarhijom, 10 ciljeva, 12 aktivnosti, 10 zdravstvenih stanja, 27 metrika po opremi — sve na tri jezika.
+**Baza.** 20 tabela, 10 enuma, PostgreSQL 17.6. Seed: 30 komada opreme, 23 mišićne grupe sa hijerarhijom, 10 ciljeva, 12 aktivnosti, 10 zdravstvenih stanja, 27 metrika po opremi — sve na tri jezika.
 
 **Admin.** `/[lang]/admin` — levi meni sa celim spiskom budućih ekrana (ono što još ne postoji stoji sa oznakom „uskoro“ i ne klikće se), mobilna fioka, `requireAdmin` u layout-u. Konfiguracija uređuje svih pet rečnika: dodavanje, izmena naziva na tri jezika, redosled strelicama, gašenje i vraćanje, nadgrupa kod mišića, izbor mernih vrednosti kod opreme. Pretraga i filter aktivno/ugašeno rade nad učitanom listom.
 
@@ -124,6 +125,28 @@ Sve nosi migracija [`supabase/migrations/0013_client_plan.sql`](../supabase/migr
 
 **Ljuska klijentskog dela.** Feature 09 i 10 su imali svako svoje zaglavlje, uz napomenu da 11 pravi pravo — evo ga: [`src/components/app/app-shell.tsx`](../src/components/app/app-shell.tsx), sa linkovima u zaglavlju na širokom ekranu i donjom trakom sa tabovima na telefonu. `library-chrome.tsx` i `runner-shell.tsx` su obrisani, a biblioteka i runner sada idu kroz njega. I dalje je komponenta a ne `layout.tsx` u grupi ruta: runner je jedini ekran koji traku sa tabovima **ne** sme da ima, jer je promašen dodir usred serije prekinut trening — to je `tabs={false}`, a ne druga grupa ruta.
 
+**Napredak.** `/[lang]/progress` — tri ekrana: pregled, merenja i fotografije. Peti tab u klijentskoj traci.
+
+Ekran ima dve polovine i podela je poenta. Gornja je telo — ono što su vaga i metar rekli, i to jedino ovaj feature upisuje. Donja je trening — niz, kolone po nedeljama, kvadratići za godinu dana i ukupne brojke — i sve to čita `loadDashboardStats`, isti čitač nad `workout_sessions` koji koristi dashboard. Nije prepisan: ekran napretka koji sam broji treninge je drugi odgovor na pitanje na koje dashboard već odgovara, a dva odgovora se razilaze tačno one nedelje kad neko proveri.
+
+**Merenja su „visoka" tabela, ne „široka".** Očigledan oblik je jedan red po danu sa kolonom po delu tela; lepo se čita i loše se crta — svaki grafikon, svaka poslednja vrednost i svaka razlika imenovali bi svoju kolonu, pa bi spisak merenja bio ispisan na desetak mesta. Ovako je merenje *vrednost*, ceo ekran je jedna petlja, a [`src/lib/progress/metrics.ts`](../src/lib/progress/metrics.ts) je jedino mesto koje zna spisak. Enum u bazi je ona polovina koja mora biti migracija.
+
+**Jedinice su kanonske u bazi — kilogrami, centimetri, procenti — a konvertuju se na ivici.** Kolona koja ponekad znači funte je kolona koju niko ne može da nacrta. `profiles.units` odlučuje šta se vidi i šta se čita iz forme; server nikad ne veruje skrivenom polju, jer bi laž bila tiha — težina u funtama upisana kao kilogrami zauvek izgleda kao uverljiv broj. Feature 16 daje prekidač, u bazi se ne menja ništa.
+
+**Grafikoni su ručno pisan SVG, bez biblioteke.** Tri grafika su linija, kolona i mreža kvadrata; zavisnost bi bila veća od njih, stigla bi sa svojim shvatanjem boje i tipografije, i bila bi još jedna stvar koja mora da se slaže sa tokenima. Težak deo je bio izbor brojeva na osi — to je `niceScale` u [`src/lib/progress/series.ts`](../src/lib/progress/series.ts). Konverzija se dešava *pre* skaliranja, ne posle: skalirati kilograme pa prevesti oznake dalo bi osu obeleženu sa 176,4 — 187,4 — 198,4, okruglu u jedinici koju niko ne gleda.
+
+**Promena se prikazuje sa znakom i nikad u boji.** Aplikacija ne zna šta je za čitaoca napredak: struk koji raste je masa koja ide kako treba ili dijeta koja ne ide, a to je isti broj sa suprotnim značenjem za dvoje ljudi. Ekran kaže koliko se promenilo; čitalac zna šta je hteo.
+
+**Fotografije.** Bajtovi ne prolaze kroz Next server — isti dogovor kao kod videa: potpisan URL, `XMLHttpRequest` zbog trake napretka. Kanta `progress-photos` postoji od migracije 0001, privatna, 10 MB, sa politikama vezanim za prefiks `{user_id}/…` — taj prefiks je *cela* politika, pa se putanja gradi od serverove predstave o tome ko pita, nikad od onoga što je stiglo u zahtevu. Prikaz ide kroz potpisan URL koji traje sat vremena, pa nema `next/image`: optimizator bi keširao link koji prestaje da radi.
+
+Jedna fotografija po uglu po danu. Poređenje mora da imenuje po jednu sliku za svaki kraj („spreda, jun" naspram „spreda, septembar"), a nova slika u istom slotu zamenjuje staru i briše objekat koji je tu bio — red se upisuje pre nego što se objekat obriše, jer zaostao fajl košta prostor, a obrnut redosled bi koštao sliku.
+
+**Ko šta sme.** Merenja i fotografije su klijentova — on piše, trener samo čita. To je ogledalo pravila iz migracije 0012, gde `client_notes` subjekat ne sme ni da vidi: osoba o kojoj podatak govori nije automatski osoba kojoj podatak pripada, i svaka tabela kaže naglas koja je koja.
+
+Sve nosi migracija [`supabase/migrations/0014_progress.sql`](../supabase/migrations/0014_progress.sql), pisana ručno da bi RLS stigao u istoj migraciji koja pravi tabele (provera preko PostgREST-a vraća `[]`, a upis anon ključem `42501`). Tabele su u `src/db/schema/progress.ts` i još nisu izvezene iz `schema/index.ts` — isti dogovor koji drži runner, klijente i plan. Tekst ekrana je u [`src/lib/progress/copy/`](../src/lib/progress/copy/), tipizovan.
+
+**Šta ovde još nije uniformno:** tonaža na kartici „Ukupno" je i dalje u kilogramima za svakoga. `formatVolume` je zajednički pomoćnik iz feature-a 12 i koristi ga i dashboard, pa prelazak na funte znači izmenu njegovog potpisa na svim pozivima — to ide sa feature-om 16, koji ionako uvodi prekidač za jedinice.
+
 ---
 
 ## Sledeći koraci
@@ -135,7 +158,7 @@ Svaka stavka je jedna sesija. Redosled je namerno takav da svaka gradi na pretho
 | **10** ✅ | **Workout runner** | Izvođenje treninga: tajmer, runde, pauze, video, beleženje serija i težina | 07 |
 | **12** ✅ | **Klijenti (admin)** | Lista klijenata, profil, dodela programa, raspored po danima, beleške vidljive samo treneru | 08 |
 | **13** ✅ | **Moj plan (klijent)** | Kalendar sopstvenih treninga, označavanje kao urađeno, pomeranje termina | 12 |
-| **14** | **Napredak** | Merenja, progress fotografije, grafikoni kretanja, niz odrađenih dana | 13 |
+| **14** ✅ | **Napredak** | Merenja, progress fotografije, grafikoni kretanja, niz odrađenih dana | 13 |
 | **15** | **Notifikacije** | Notification centar, zakazivanje, ponavljanje, mejl obaveštenja | 12 |
 | **16** | **Nalog i podešavanja** | Profil, jedinice mere, jezik, promena lozinke | 11 |
 | **17** | **Mejl + poliranje** | Resend kao SMTP umesto Supabase mailera, mobilni prolaz kroz sve ekrane | 16 |

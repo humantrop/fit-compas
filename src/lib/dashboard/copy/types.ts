@@ -33,7 +33,13 @@ export type DashboardCopy = {
   chrome: {
     signOut: string;
     admin: string;
-    tabs: { today: string; plan: string; workouts: string; library: string };
+    tabs: {
+      today: string;
+      plan: string;
+      workouts: string;
+      library: string;
+      progress: string;
+    };
   };
 
   /** Picked by the hour, in the reader's own time zone. */

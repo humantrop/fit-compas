@@ -15,6 +15,7 @@ export const ru: DashboardCopy = {
       plan: "План",
       workouts: "Тренировки",
       library: "Библиотека",
+      progress: "Прогресс",
     },
   },
 
