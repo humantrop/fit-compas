@@ -6,7 +6,7 @@
 
 **Live:** https://fit-compas.vercel.app · **Repo:** https://github.com/humantrop/fit-compas
 
-Poslednje ažurirano: 21.08.2026. · završen feature 08 — programi
+Poslednje ažurirano: 21.08.2026. · završen feature 09 — biblioteka za klijenta
 
 ---
 
@@ -22,6 +22,7 @@ Poslednje ažurirano: 21.08.2026. · završen feature 08 — programi
 | 05 | Admin shell + Configuration | ✅ |
 | 06 | Vežbe + video — CRUD, upload u Storage, potpisani URL | ✅ |
 | 08 | Programi — nedelje × dani, dani odmora | ✅ · birač treninga čeka 07 |
+| 09 | Biblioteka za klijenta — pretraga i filteri | ✅ · police za treninge i programe čekaju 07/08 |
 
 ### Šta konkretno radi
 
@@ -51,6 +52,14 @@ Objavljivanje je zasebna akcija, ne polje u formi, jer jedino ono ima uslov: ve�
 
 Napravljeno je paralelno sa feature-om 07, pa `program_days.workout_id` nema Drizzle relaciju — pravi strani ključ dodaje migracija čim `public.workouts` postoji, a [`src/lib/programs/workout-source.ts`](../src/lib/programs/workout-source.ts) pita bazu u runtime-u da li ta tabela postoji. Dok ne postoji, birač treninga stoji zaključan uz poruku, a odmor, beleške i cela mreža rade. Kad 07 sleti, birač se popuni sam — bez izmene koda ovde.
 
+**Biblioteka.** `/[lang]/library` — isti katalog iz ugla vežbača. Prikazuje samo objavljeno; nacrt sa videom koji se još šalje ne postoji za klijenta ni kroz filter ni kroz pogođenu skraćenicu. Filtriranje ide po opremi, mišićnoj grupi, cilju, aktivnosti i težini — unutar jedne grupe uslovi se sabiraju, između grupa presecaju, kao u prodavnici. Ponuđene su samo oznake koje stvarno stoje na nekoj objavljenoj vežbi, sa brojem pored, a ne ceo rečnik; nadgrupa mišića hvata i podgrupe. Sve stanje je u query stringu, pa je filtriran prikaz link, a `Nazad` znači nešto. Lista je serverska komponenta — jedina klijentska je panel sa filterima, koji samo prepisuje URL.
+
+Police za treninge i programe stoje uz poruku „uskoro“, jer 07 i 08 nose svoje tabele. Ekran je zato pisan nad [`src/lib/library/sources.ts`](../src/lib/library/sources.ts), a ne nad tri skupa tabela — paljenje police je izmena dva reda u tom fajlu, ostalo se ne dira.
+
+`getAccess()` se zove u layout-u biblioteke, ne u svakoj stranici. Time je pravilo iz odeljka ispod strukturno: zaključanom čitaocu se `children` uopšte ne renderuje, pa se ni upiti ne izvrše, i nova stranica pod `/library` ne može da zaboravi proveru.
+
+Tekst ove sekcije je u [`src/lib/library/copy/`](../src/lib/library/copy/) kao tipizovani moduli, ne u tri zajednička rečnika: TypeScript tako odbija jezik kome fali ključ, što `npm run check:i18n` hvata tek kad se pokrene.
+
 ---
 
 ## Sledeći koraci
@@ -60,7 +69,6 @@ Svaka stavka je jedna sesija. Redosled je namerno takav da svaka gradi na pretho
 | # | Feature | Šta se dobija | Zavisi od |
 |---|---|---|---|
 | **07** | **Workout builder** | Sklapanje treninga: zagrevanje / grupe sa rundama / smirivanje, reps vs vreme, RPE i tempo, tri nivoa pauze, dinamička polja po opremi, live preview | 06 |
-| **09** | **Biblioteka za klijenta** | Pretraga i filtriranje vežbi, treninga i programa iz ugla vežbača | 06 |
 | **10** ✅ | **Workout runner** | Izvođenje treninga: tajmer, runde, pauze, video, beleženje serija i težina | 07 |
 | **11** | **Dashboard klijenta** | Bento dashboard — današnji trening, nedeljni raspored, niz odrađenih dana, statistika | 10 |
 | **12** | **Klijenti (admin)** | Lista klijenata, profil, dodela programa, raspored po danima, beleške vidljive samo treneru | 08 |
