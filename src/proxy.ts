@@ -34,8 +34,22 @@ function resolveLocale(request: NextRequest): string {
   }
 }
 
+/**
+ * Anything ending in an extension is a file request (public/ assets, favicon,
+ * source maps). Redirecting those to /sr/whatever.svg breaks them.
+ *
+ * This lives in code rather than in config.matcher on purpose: Next strips the
+ * backslash out of an escaped `\.` when it compiles the matcher, turning
+ * `.*\..*` into `.*..*` — which matches every non-empty path and silently
+ * disables the proxy for the whole app. Verified in
+ * .next/server/functions-config-manifest.json.
+ */
+const FILE_REQUEST = /\.[a-zA-Z0-9]+$/;
+
 export async function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
+
+  if (FILE_REQUEST.test(pathname)) return NextResponse.next();
 
   const hasLocale = locales.some(
     (locale) => pathname === `/${locale}` || pathname.startsWith(`/${locale}/`),
@@ -75,13 +89,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Everything except:
-     *  - /api        route handlers (Polar webhooks must not be redirected)
-     *  - /_next      framework assets
-     *  - static file requests (anything with an extension)
-     */
-    "/((?!api|_next/static|_next/image|.*\..*).*)",
-  ],
+  // Prefix exclusions only — no escaped characters, see FILE_REQUEST above.
+  // /api is excluded here so Polar webhooks are never redirected.
+  matcher: ["/((?!api|_next/static|_next/image).*)"],
 };
