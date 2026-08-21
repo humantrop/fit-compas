@@ -11,7 +11,8 @@ type FieldProps = {
   className?: string;
 } & Omit<React.InputHTMLAttributes<HTMLInputElement>, "className" | "id">;
 
-const inputBase =
+/** Exported so selects and textareas elsewhere share the exact input skin. */
+export const fieldControl =
   "h-12 w-full rounded-control border border-white/10 bg-white/4 px-4 text-[15px] " +
   "text-ink-100 outline-none transition-all placeholder:text-ink-500 " +
   "hover:border-white/16 focus:border-brand-500/60 focus:bg-white/6 " +
@@ -25,7 +26,7 @@ export function Field({ label, hint, className, ...props }: FieldProps) {
       <label htmlFor={id} className="text-[13px] font-medium text-ink-300">
         {label}
       </label>
-      <input id={id} className={inputBase} {...props} />
+      <input id={id} className={fieldControl} {...props} />
       {hint ? <p className="text-[12px] text-ink-500">{hint}</p> : null}
     </div>
   );
@@ -47,7 +48,7 @@ export function PasswordField({ label, hint, className, ...props }: FieldProps) 
         <input
           id={id}
           type={visible ? "text" : "password"}
-          className={cn(inputBase, "pr-12")}
+          className={cn(fieldControl, "pr-12")}
           {...props}
         />
         <button

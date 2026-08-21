@@ -6,6 +6,10 @@ import postgres from "postgres";
  *
  * Idempotent: keyed on slug, so re-running updates names and leaves ids alone.
  * Ids must be stable — exercises reference them.
+ *
+ * `position` and `is_active` are set on insert only. Once the Configuration
+ * screen exists they belong to the admin, and re-running the seed to fix a
+ * translation must not silently undo an afternoon of reordering.
  */
 
 function loadEnv(path) {
@@ -158,7 +162,7 @@ async function seedSimple(table, rows) {
       insert into ${sql(table)} (slug, name, position)
       values (${slug}, ${name(sr, en, ru)}::jsonb, ${n})
       on conflict (slug) do update
-        set name = excluded.name, position = excluded.position, updated_at = now()
+        set name = excluded.name, updated_at = now()
     `;
     n += 1;
   }
@@ -178,7 +182,7 @@ try {
       insert into public.muscle_groups (slug, name, position)
       values (${slug}, ${name(sr, en, ru)}::jsonb, ${i})
       on conflict (slug) do update
-        set name = excluded.name, position = excluded.position, updated_at = now()
+        set name = excluded.name, updated_at = now()
     `;
     i += 1;
   }

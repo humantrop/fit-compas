@@ -6,7 +6,7 @@
 
 **Live:** https://fit-compas.vercel.app · **Repo:** https://github.com/humantrop/fit-compas
 
-Poslednje ažurirano: 21.08.2026. · redosled izmenjen: naplata pomerena na 18
+Poslednje ažurirano: 21.08.2026. · završen feature 05 — admin shell i konfiguracija
 
 ---
 
@@ -19,6 +19,7 @@ Poslednje ažurirano: 21.08.2026. · redosled izmenjen: naplata pomerena na 18
 | 02 | i18n — srpski, engleski, ruski | ✅ |
 | 03 | Autentikacija — Supabase, prijava/registracija/reset, zaštita ruta | ✅ |
 | 04 | Baza — Drizzle šema, taksonomije, RLS | ✅ |
+| 05 | Admin shell + Configuration | ✅ |
 
 ### Šta konkretno radi
 
@@ -26,11 +27,15 @@ Poslednje ažurirano: 21.08.2026. · redosled izmenjen: naplata pomerena na 18
 
 **Dizajn.** Tamna mornaričko-plava podloga, električna plava kao primarna, staklene površine, bento raspored. Tokeni su u [`src/app/globals.css`](../src/app/globals.css) kroz Tailwind 4 `@theme`. Sve kartice idu kroz `<Surface>` — nigde ad-hoc `bg-white/5`.
 
-**Jezici.** `app/[lang]` segment, `proxy.ts` bira jezik po redosledu kolačić → `Accept-Language` → srpski. Rečnici su code-split, sva tri imaju identično stablo od 126 ključeva (skripta to proverava pri svakoj izmeni).
+**Jezici.** `app/[lang]` segment, `proxy.ts` bira jezik po redosledu kolačić → `Accept-Language` → srpski. Rečnici su code-split, sva tri imaju identično stablo od 209 ključeva (`npm run check:i18n` to proverava).
 
 **Auth.** Registracija → potvrda mejla → prijava → zaštićena ruta → odjava, sve radi uživo. Postoji i reset lozinke. Greške se vraćaju kao kodovi pa se prevode u rečniku — korisnik vidi srpsku poruku iako Supabase odgovara engleski.
 
 **Baza.** 13 tabela, 6 enuma, PostgreSQL 17.6. Seed: 30 komada opreme, 23 mišićne grupe sa hijerarhijom, 10 ciljeva, 12 aktivnosti, 10 zdravstvenih stanja, 27 metrika po opremi — sve na tri jezika.
+
+**Admin.** `/[lang]/admin` — levi meni sa celim spiskom budućih ekrana (ono što još ne postoji stoji sa oznakom „uskoro“ i ne klikće se), mobilna fioka, `requireAdmin` u layout-u. Konfiguracija uređuje svih pet rečnika: dodavanje, izmena naziva na tri jezika, redosled strelicama, gašenje i vraćanje, nadgrupa kod mišića, izbor mernih vrednosti kod opreme. Pretraga i filter aktivno/ugašeno rade nad učitanom listom.
+
+Dve stvari koje ovaj ekran namerno **ne** radi: ne briše i ne menja skraćenicu. Brisanje bi ili srušilo strani ključ ili kaskadno pojelo oznake na gotovim vežbama, pa ugašena stavka samo nestaje iz svih birača a postojeće oznake ostaju. Skraćenica je ono na šta pokazuju linkovi, seed i sačuvani filteri — preimenovanje je menja jedino ako se to dozvoli, pa se ne dozvoljava.
 
 ---
 
@@ -40,7 +45,6 @@ Svaka stavka je jedna sesija. Redosled je namerno takav da svaka gradi na pretho
 
 | # | Feature | Šta se dobija | Zavisi od |
 |---|---|---|---|
-| **05** | **Admin shell + Configuration** | Levi meni admin panela i ekran za uređivanje taksonomija (oprema, mišići, ciljevi, aktivnosti, zdravstvena stanja) — dodavanje, izmena, redosled, gašenje | 04 |
 | **06** | **Vežbe + video** | CRUD vežbi, upload videa direktno u Supabase Storage, potpisani URL za gledanje, admin lista sa filterima | 05 |
 | **07** | **Workout builder** | Sklapanje treninga: zagrevanje / grupe sa rundama / smirivanje, reps vs vreme, RPE i tempo, tri nivoa pauze, dinamička polja po opremi, live preview | 06 |
 | **08** | **Programi** | Višenedeljni programi — nedelje × dani → treninzi, sa danima odmora | 07 |
@@ -120,6 +124,10 @@ Mora vratiti `[]`.
 
 **`SECURITY DEFINER` menja `current_user` u vlasnika funkcije.** Zbog toga prva verzija zaštite od promene role nije mogla da razlikuje krajnjeg korisnika od migracije u SQL editoru i blokirala je baš onu promociju zbog koje postoji. Guard funkcije koje moraju znati ko je pozivalac ne smeju biti `SECURITY DEFINER`. Funkcije koje treba da zaobiđu RLS (`is_admin`, `handle_new_user`) — moraju.
 
+**Stranica ispod `[lang]` se prerenderuje i kad nema šta da se prerenderuje.** Roditeljski `app/[lang]/layout.tsx` ima `generateStaticParams`, pa build pokušava da unapred izgradi i `/sr/admin/configuration` — bez sesije, bez zahteva, ali sa pozivom ka bazi. Radnik onda visi dok ne istekne 60 sekundi i build pukne. `cookies()` u layout-u to ne spreči jer se stranica renderuje kao zaseban segment. Rešenje je `await connection()` iz `next/server` na vrhu **svake** takve stranice, ne u layout-u. `export const dynamic` više nije u dokumentovanom spisku opcija za segment u Next 16.
+
+**Seed ne sme da prepiše ono što admin uredi.** Prva verzija `seed-taxonomy.mjs` je na `on conflict` upisivala i `position`, pa bi ponovno pokretanje seeda zbog ispravke jednog prevoda poništilo sav ručno podešen redosled. Sada se `position` i `is_active` postavljaju samo pri prvom umetanju; naziv se i dalje osvežava, jer je seed izvor istine za prevode.
+
 **`"use server"` fajl sme da izvozi samo async funkcije.** `export const IDLE = {...}` u takvom fajlu je build greška. Tipovi i konstante idu u zaseban fajl.
 
 **Migracija ne sme da rekreira `profiles`.** Ta tabela je vlasništvo `supabase/migrations/0001`, gde dobija FK ka `auth.users` i RLS politike. `CREATE TABLE` iz Drizzle migracije je zakomentarisan.
@@ -132,6 +140,7 @@ Mora vratiti `[]`.
 npm run dev          # lokalno, http://localhost:3000 → /sr
 npm run build        # mora proći pre svakog push-a
 npm run lint
+npm run check:i18n   # sva tri rečnika moraju imati isto stablo ključeva
 
 npm run db:generate  # razlika šeme → drizzle/*.sql
 npm run db:migrate   # primeni migracije (koristi DIRECT_URL)
@@ -149,8 +158,10 @@ src/
   app/[lang]/          rute po jeziku; root layout je ovde
     (auth)/            login, signup, forgot-password, reset-password
     (app)/dashboard    zaštićene rute
+    admin/             admin panel; layout radi requireAdmin
   app/api/             route handleri (auth confirm, kasnije Polar webhook)
   components/ui/       Surface, Button, Field, Eyebrow
+  components/admin/    admin shell, editor taksonomija
   components/site/     header, footer, prebacivač jezika
   components/auth/     forme
   components/marketing/
@@ -158,11 +169,12 @@ src/
   db/client.ts         konekcija (transaction pooler, prepare:false)
   dictionaries/        sr.json, en.json, ru.json — identično stablo ključeva
   lib/auth/            server akcije, sesija, klasifikacija ruta
+  lib/taxonomy/        rečnici: definicije, upiti, server akcije
   lib/supabase/        browser / server / admin klijent, refresh sesije
   lib/i18n/            konfiguracija i učitavanje rečnika
   proxy.ts             jezik + zaštita ruta
 drizzle/               generisane migracije
 supabase/migrations/   ručni SQL (profiles, RLS, storage bucketi)
-scripts/               migrate.mjs, seed-taxonomy.mjs
+scripts/               migrate.mjs, seed-taxonomy.mjs, check-dictionaries.mjs
 docs/                  ovaj fajl i SUPABASE-SETUP.md
 ```

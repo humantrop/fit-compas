@@ -244,6 +244,115 @@
     "roleClient": "Klijent",
     "emailVerified": "Mejl potvrđen",
     "emailPending": "Mejl nije potvrđen",
-    "noProfile": "Nalog postoji, ali profil nije napravljen. Pokreni SQL skriptu za profiles tabelu i trigger."
+    "noProfile": "Nalog postoji, ali profil nije napravljen. Pokreni SQL skriptu za profiles tabelu i trigger.",
+    "adminLink": "Admin panel"
+  },
+  "admin": {
+    "nav": {
+      "overview": "Pregled",
+      "exercises": "Vežbe",
+      "workouts": "Treninzi",
+      "programs": "Programi",
+      "clients": "Klijenti",
+      "notifications": "Notifikacije",
+      "configuration": "Konfiguracija",
+      "groupContent": "Sadržaj",
+      "groupPeople": "Ljudi",
+      "groupSystem": "Sistem",
+      "backToApp": "Nazad u aplikaciju",
+      "signOut": "Odjava",
+      "openMenu": "Otvori meni",
+      "closeMenu": "Zatvori meni",
+      "soon": "uskoro",
+      "badge": "Admin"
+    },
+    "home": {
+      "title": "Zdravo",
+      "subtitle": "Odavde se pravi i uređuje sve što klijent vidi — od naziva opreme do gotovog programa.",
+      "configTitle": "Konfiguracija",
+      "configBody": "Oprema, mišićne grupe, ciljevi, aktivnosti i zdravstvena stanja. To su liste po kojima se filtrira cela biblioteka, pa ih vredi podesiti pre nego što uđe prva vežba.",
+      "configCta": "Otvori konfiguraciju",
+      "vocabularies": "Stavki u rečnicima",
+      "soonTitle": "Ostalo stiže redom",
+      "soonBody": "Vežbe, treninzi, programi i klijenti su sledeći na redu. Stavke u meniju označene sa „uskoro“ još nemaju ekran — pojaviće se čim budu gotove."
+    },
+    "config": {
+      "title": "Konfiguracija",
+      "subtitle": "Pet rečnika po kojima se označavaju i filtriraju vežbe, treninzi i programi. Naziv se menja kad god treba; skraćenica ostaje ista da postojeće oznake ne bi pukle.",
+      "activeLabel": "aktivnih",
+      "retiredLabel": "ugašenih"
+    },
+    "vocabularies": {
+      "equipment": {
+        "title": "Oprema",
+        "description": "Sve čime se vežba — od sopstvene težine do trake za trčanje. Uz svaku spravu se bira i koje brojeve traži pri sklapanju treninga."
+      },
+      "muscle_groups": {
+        "title": "Mišićne grupe",
+        "description": "Grupe i podgrupe, jedan nivo duboko: Leđa → Latisimus. Po njima se filtrira biblioteka i računa pokrivenost treninga."
+      },
+      "goals": {
+        "title": "Ciljevi",
+        "description": "Zašto se vežba: masa, snaga, mršavljenje, pokretljivost. Ista lista se nudi klijentu pri upisu i vežbi pri označavanju."
+      },
+      "activities": {
+        "title": "Aktivnosti",
+        "description": "Tip treninga — snaga, kardio, pilates, zagrevanje. Određuje kako se vežbe grupišu u biblioteci."
+      },
+      "health_issues": {
+        "title": "Zdravstvena stanja",
+        "description": "Ono oko čega se program prilagođava: bol u leđima, povreda kolena, trudnoća. Koristi se za upozorenja i izbor vežbi."
+      }
+    },
+    "editor": {
+      "add": "Dodaj",
+      "addTitle": "Nova stavka",
+      "editTitle": "Izmena stavke",
+      "search": "Pretraga",
+      "filterAll": "Sve",
+      "filterActive": "Aktivne",
+      "filterRetired": "Ugašene",
+      "empty": "Lista je prazna. Dodaj prvu stavku.",
+      "emptyFiltered": "Nema stavke koja odgovara pretrazi.",
+      "nameLabel": "Naziv",
+      "nameHint": "Srpski je obavezan — na njega se prikaz vraća kad prevod nedostaje.",
+      "slug": "Skraćenica",
+      "slugHint": "Ostavi prazno da se izvede iz naziva.",
+      "slugLocked": "Skraćenica se ne menja — na nju pokazuju linkovi i sačuvani filteri.",
+      "parent": "Nadgrupa",
+      "parentNone": "Bez nadgrupe",
+      "metrics": "Merne vrednosti",
+      "metricsHint": "Šta sprava traži pri sklapanju treninga. Traka za trčanje traži nagib i brzinu, šipka samo težinu.",
+      "save": "Sačuvaj",
+      "saving": "Čuvam…",
+      "cancel": "Odustani",
+      "edit": "Izmeni",
+      "retire": "Ugasi",
+      "restore": "Vrati",
+      "moveUp": "Pomeri gore",
+      "moveDown": "Pomeri dole",
+      "retired": "ugašeno",
+      "reorderOff": "Redosled se menja samo dok je prikazana cela lista — bez pretrage i filtera."
+    },
+    "metrics": {
+      "weight": "Težina",
+      "resistance": "Otpor",
+      "level": "Nivo",
+      "incline": "Nagib",
+      "speed": "Brzina",
+      "pace": "Tempo",
+      "distance": "Razdaljina",
+      "power": "Snaga (W)",
+      "height": "Visina"
+    },
+    "errors": {
+      "not_admin": "Nemaš dozvolu za ovu izmenu.",
+      "invalid_slug": "Skraćenica sme da sadrži samo mala slova, brojeve i crticu.",
+      "slug_taken": "Ta skraćenica već postoji u ovoj listi.",
+      "name_required": "Naziv na srpskom je obavezan.",
+      "invalid_parent": "Nadgrupa nije ispravna — stablo ide samo jedan nivo duboko.",
+      "not_found": "Ta stavka više ne postoji.",
+      "unknown": "Nešto nije uspelo. Pokušaj ponovo."
+    }
   }
 }

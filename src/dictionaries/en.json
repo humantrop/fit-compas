@@ -244,6 +244,115 @@
     "roleClient": "Client",
     "emailVerified": "Email confirmed",
     "emailPending": "Email not confirmed",
-    "noProfile": "The account exists but no profile row was created. Run the profiles table and trigger SQL."
+    "noProfile": "The account exists but no profile row was created. Run the profiles table and trigger SQL.",
+    "adminLink": "Admin"
+  },
+  "admin": {
+    "nav": {
+      "overview": "Overview",
+      "exercises": "Exercises",
+      "workouts": "Workouts",
+      "programs": "Programs",
+      "clients": "Clients",
+      "notifications": "Notifications",
+      "configuration": "Configuration",
+      "groupContent": "Content",
+      "groupPeople": "People",
+      "groupSystem": "System",
+      "backToApp": "Back to app",
+      "signOut": "Sign out",
+      "openMenu": "Open menu",
+      "closeMenu": "Close menu",
+      "soon": "soon",
+      "badge": "Admin"
+    },
+    "home": {
+      "title": "Hello",
+      "subtitle": "Everything a client sees is built and edited from here — from equipment names to a finished program.",
+      "configTitle": "Configuration",
+      "configBody": "Equipment, muscle groups, goals, activities and health conditions. These are the lists the whole library filters on, so they are worth settling before the first exercise goes in.",
+      "configCta": "Open configuration",
+      "vocabularies": "Items across vocabularies",
+      "soonTitle": "The rest lands in order",
+      "soonBody": "Exercises, workouts, programs and clients are next. Menu entries marked “soon” have no screen yet — they show up as they are finished."
+    },
+    "config": {
+      "title": "Configuration",
+      "subtitle": "Five vocabularies used to tag and filter exercises, workouts and programs. Names change whenever you like; the slug stays put so existing tags keep working.",
+      "activeLabel": "active",
+      "retiredLabel": "retired"
+    },
+    "vocabularies": {
+      "equipment": {
+        "title": "Equipment",
+        "description": "Everything a movement is done with, from bodyweight to a treadmill. Each machine also declares which numbers the workout builder asks for."
+      },
+      "muscle_groups": {
+        "title": "Muscle groups",
+        "description": "Groups and subgroups, one level deep: Back → Lats. The library filters on these and workout coverage is measured from them."
+      },
+      "goals": {
+        "title": "Goals",
+        "description": "Why someone trains: mass, strength, fat loss, mobility. The same list is offered to a client at sign-up and to an exercise when tagging."
+      },
+      "activities": {
+        "title": "Activities",
+        "description": "The training modality — strength, cardio, pilates, warm-up. Decides how exercises group in the library."
+      },
+      "health_issues": {
+        "title": "Health conditions",
+        "description": "What a program has to work around: back pain, a knee injury, pregnancy. Drives warnings and exercise selection."
+      }
+    },
+    "editor": {
+      "add": "Add",
+      "addTitle": "New item",
+      "editTitle": "Edit item",
+      "search": "Search",
+      "filterAll": "All",
+      "filterActive": "Active",
+      "filterRetired": "Retired",
+      "empty": "The list is empty. Add the first item.",
+      "emptyFiltered": "Nothing matches that search.",
+      "nameLabel": "Name",
+      "nameHint": "Serbian is required — it is what the display falls back to when a translation is missing.",
+      "slug": "Slug",
+      "slugHint": "Leave empty to derive it from the name.",
+      "slugLocked": "The slug never changes — links and saved filters point at it.",
+      "parent": "Parent group",
+      "parentNone": "No parent",
+      "metrics": "Metrics",
+      "metricsHint": "What this machine asks for in the workout builder. A treadmill wants incline and speed, a barbell only weight.",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "retire": "Retire",
+      "restore": "Restore",
+      "moveUp": "Move up",
+      "moveDown": "Move down",
+      "retired": "retired",
+      "reorderOff": "Order can only change while the full list is showing — no search, no filter."
+    },
+    "metrics": {
+      "weight": "Weight",
+      "resistance": "Resistance",
+      "level": "Level",
+      "incline": "Incline",
+      "speed": "Speed",
+      "pace": "Pace",
+      "distance": "Distance",
+      "power": "Power (W)",
+      "height": "Height"
+    },
+    "errors": {
+      "not_admin": "You are not allowed to make this change.",
+      "invalid_slug": "A slug may only contain lowercase letters, numbers and hyphens.",
+      "slug_taken": "That slug is already used in this list.",
+      "name_required": "The Serbian name is required.",
+      "invalid_parent": "That parent is not valid — the tree stays one level deep.",
+      "not_found": "That item no longer exists.",
+      "unknown": "Something went wrong. Try again."
+    }
   }
 }

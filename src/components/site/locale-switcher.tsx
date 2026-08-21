@@ -7,6 +7,11 @@ import { useState, useTransition } from "react";
 import { localeNames, localeShort, locales, type Locale } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
 
+/** Remembers the explicit choice so proxy.ts stops guessing from headers. */
+function rememberLocale(locale: Locale) {
+  document.cookie = `fc_locale=${locale};path=/;max-age=31536000;samesite=lax`;
+}
+
 export function LocaleSwitcher({ current }: { current: Locale }) {
   const pathname = usePathname();
   const router = useRouter();
@@ -17,8 +22,7 @@ export function LocaleSwitcher({ current }: { current: Locale }) {
     setOpen(false);
     if (next === current) return;
 
-    // Remember the explicit choice so proxy.ts stops guessing from headers.
-    document.cookie = `fc_locale=${next};path=/;max-age=31536000;samesite=lax`;
+    rememberLocale(next);
 
     const segments = pathname.split("/");
     segments[1] = next; // [0] is the empty string before the leading slash

@@ -1,7 +1,7 @@
-import { AlertTriangle, LogOut, MailCheck, MailWarning } from "lucide-react";
+import { AlertTriangle, LogOut, MailCheck, MailWarning, Shield } from "lucide-react";
 import { notFound } from "next/navigation";
 
-import { Button } from "@/components/ui/button";
+import { Button, ButtonLink } from "@/components/ui/button";
 import { Surface } from "@/components/ui/surface";
 import { Logo } from "@/components/site/logo";
 import { LocaleSwitcher } from "@/components/site/locale-switcher";
@@ -37,6 +37,13 @@ export default async function DashboardPage({
           <Logo />
         </div>
         <div className="flex items-center gap-1.5">
+          {profile?.role === "admin" ? (
+            <ButtonLink href={`/${lang}/admin`} variant="secondary" size="sm">
+              <Shield className="size-4" />
+              <span className="hidden sm:inline">{copy.adminLink}</span>
+            </ButtonLink>
+          ) : null}
+
           <LocaleSwitcher current={lang} />
           <form action={signOutAction}>
             <input type="hidden" name="lang" value={lang} />
