@@ -1,0 +1,106 @@
+{
+  "list": {
+    "title": "Workouts",
+    "subtitle": "Pick a workout and go. The app handles rounds, rests and the timer.",
+    "demoNotice": "These are sample workouts. Real ones show up here as soon as the first is built in the workout builder.",
+    "empty": "No workouts yet.",
+    "sets": "sets",
+    "minutes": "min",
+    "open": "Open"
+  },
+  "difficulty": {
+    "beginner": "Beginner",
+    "novice": "Novice",
+    "intermediate": "Intermediate",
+    "advanced": "Advanced",
+    "elite": "Elite"
+  },
+  "section": {
+    "warmup": "Warm-up",
+    "main": "Main set",
+    "cooldown": "Cool-down"
+  },
+  "ready": {
+    "start": "Start workout",
+    "resume": "Resume workout",
+    "resumeHint": "This workout is already running. Picking up at set {n}.",
+    "overview": "What's coming",
+    "sets": "sets",
+    "estimate": "about {min} min",
+    "rounds": "{n} rounds",
+    "oneRound": "1 round",
+    "loggingOff": "Logging is unavailable right now. The workout runs, but sets will not be saved.",
+    "back": "Back to workouts"
+  },
+  "step": {
+    "round": "Round {current}/{total}",
+    "set": "Set {current} of {total}",
+    "reps": "reps",
+    "tempo": "Tempo",
+    "rpe": "RPE",
+    "perSide": "per side",
+    "done": "Done",
+    "skip": "Skip",
+    "pause": "Pause",
+    "continue": "Resume",
+    "start": "Go",
+    "noVideo": "Video arrives with the exercise library.",
+    "elapsed": "Time",
+    "quit": "Quit"
+  },
+  "rest": {
+    "title": "Rest",
+    "set": "Rest between exercises",
+    "round": "Rest between rounds",
+    "section": "Rest before the next block",
+    "next": "Up next",
+    "add": "+15 s",
+    "skip": "Skip rest",
+    "last": "Last exercise"
+  },
+  "log": {
+    "reps": "Reps",
+    "seconds": "Seconds",
+    "rpeLabel": "How hard was it (RPE)",
+    "saveFailed": "This set was not saved. Keep going, we will retry.",
+    "weight": "Weight (kg)",
+    "incline": "Incline (%)",
+    "speed": "Speed (km/h)",
+    "pace": "Pace (min/km)",
+    "distance": "Distance (m)",
+    "power": "Power (W)",
+    "level": "Level",
+    "height": "Height (cm)",
+    "resistance": "Resistance"
+  },
+  "summary": {
+    "title": "Workout done",
+    "subtitle": "Write down how it went — this is what shows up in your progress later.",
+    "duration": "Duration",
+    "sets": "Sets",
+    "volume": "Total volume",
+    "volumeUnit": "kg",
+    "rpe": "How did it feel?",
+    "notes": "Note",
+    "notesPlaceholder": "How did you feel during the workout?",
+    "save": "Save and finish",
+    "saving": "Saving…",
+    "saveFailed": "Saving failed. Try again.",
+    "backToList": "Back to workouts",
+    "notSaved": "This workout was not saved."
+  },
+  "quit": {
+    "title": "Quit the workout?",
+    "body": "Completed sets stay saved. The workout stays open, so you can pick it up later.",
+    "confirm": "Quit",
+    "cancel": "Keep training"
+  },
+  "access": {
+    "title": "Subscription required",
+    "body": "Workouts are part of the subscription. Activate it to start training."
+  },
+  "notFound": {
+    "title": "Workout not found",
+    "body": "It may have been deleted, or the link is wrong."
+  }
+}
