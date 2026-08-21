@@ -45,13 +45,29 @@ src/
   a fullscreen player and breaks the workout runner.
 - **Dictionaries stay in sync.** All three files must have the same key tree.
 - **Next 16 renamed middleware to `proxy.ts`** and `params` is a Promise.
+- **Never put a regex escape in `config.matcher`.** Next strips the backslash
+  when it compiles the matcher, so `.*\..*` silently becomes `.*..*`, which
+  matches everything and disables the proxy for the whole app. Filter in code.
+- **Every new table in `public` gets RLS enabled in the same migration.**
+  PostgREST exposes the whole schema, so a table without RLS is readable and
+  writable by anyone holding the publishable key — which ships to the browser
+  by design. Default-deny plus a narrow read grant. Verify with an anon
+  `curl $SUPABASE_URL/rest/v1/<table>` before shipping.
+- **Migrations run against `DIRECT_URL` (5432), the app against `DATABASE_URL`
+  (6543).** The transaction pooler cannot hold session state, so DDL through it
+  half-applies, and `postgres.js` must use `prepare: false` against it.
 
 ## Local development
 
 ```bash
 npm install
-npm run dev     # http://localhost:3000 → redirects to /sr
-npm run build   # must pass before every push
+npm run dev          # http://localhost:3000 → redirects to /sr
+npm run build        # must pass before every push
+
+npm run db:generate  # diff schema -> drizzle/*.sql
+npm run db:migrate   # apply pending migrations (uses DIRECT_URL)
+npm run db:seed      # taxonomy vocabularies, idempotent on slug
+npm run db:studio    # browse the data
 ```
 
 Environment variables live in `.env.local` (git-ignored) and mirror the Vercel
