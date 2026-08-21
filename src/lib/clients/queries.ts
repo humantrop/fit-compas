@@ -7,11 +7,12 @@ import { db } from "@/db/client";
 import type { Translated } from "@/db/schema/i18n";
 import type { AssignmentStatus } from "@/db/schema/clients";
 
+import { indexMoves, planSlots, type Move } from "@/lib/plan/moves";
+
 import {
   dayKeyOf,
   planEnd as planEndOf,
   planProgress,
-  planRange,
   shiftDay,
   type DayKey,
   type GridWeek,
@@ -526,6 +527,31 @@ export async function loadProgramGrid(
   };
 }
 
+/**
+ * The days this client moved themselves (feature 13, migration 0013).
+ *
+ * Degrades like the other cross-migration reads on this screen: on a database
+ * where 0013 has not been applied, the trainer sees the plan as the program
+ * describes it rather than a 500 on the People screen.
+ */
+async function loadPlanMoves(assignmentId: string): Promise<Move[]> {
+  try {
+    const rows = await db.execute<{ from_day: string; to_day: string }>(sql`
+      select from_day::text as from_day, to_day::text as to_day
+      from public.plan_day_moves
+      where assignment_id = ${assignmentId}::uuid
+    `);
+
+    return [...rows].map((row) => ({
+      fromDay: row.from_day,
+      toDay: row.to_day,
+    }));
+  } catch (error) {
+    console.error("getClient: could not read plan_day_moves", error);
+    return [];
+  }
+}
+
 /** How far back and forward the schedule strip reaches from today. */
 const SCHEDULE_BACK = 3;
 const SCHEDULE_FORWARD = 13;
@@ -595,12 +621,21 @@ export async function getClient(id: string): Promise<ClientDetail | null> {
       planEnd = planEndOf(grid, live.startDate);
       progress = planProgress(grid, live.startDate, today);
 
-      schedule = planRange(grid, live.startDate, from, to).map((plan) => {
+      // The client's own moved days, laid over the derived plan. Read here
+      // rather than recomputed on the client screen: feature 13 owns the
+      // overlay, and the coach has to be looking at the week the client is
+      // actually following, not the one the program alone describes.
+      const moves = indexMoves(await loadPlanMoves(live.id));
+
+      schedule = planSlots(grid, live.startDate, moves, from, to).map((slot) => {
+        const plan = slot.plan;
         const day = trained.get(plan.day);
         const slug = plan.workoutSlug;
 
         return {
           plan,
+          movedFrom: slot.movedFrom,
+          movedTo: slot.movedTo,
           isToday: plan.day === today,
           isPast: plan.day < today,
           done: day?.count ?? 0,

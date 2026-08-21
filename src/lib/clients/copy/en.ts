@@ -93,6 +93,8 @@ export const en: ClientsCopy = {
     doneMatched: "Done",
     doneOther: "Trained, but a different workout",
     missed: "Missed",
+    movedFrom: "Client moved this from {date}",
+    movedTo: "Client moved this to {date}",
 
     historyHeading: "Earlier plans",
     historyEmpty: "This is their first plan.",

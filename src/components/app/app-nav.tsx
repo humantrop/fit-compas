@@ -1,6 +1,6 @@
 "use client";
 
-import { Dumbbell, House, LibraryBig } from "lucide-react";
+import { CalendarDays, Dumbbell, House, LibraryBig } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 
 export type TabLabels = {
   today: string;
+  plan: string;
   workouts: string;
   library: string;
 };
@@ -34,6 +35,7 @@ type Item = {
 function items(lang: Locale): Item[] {
   return [
     { key: "today", href: `/${lang}/dashboard`, icon: House, prefix: false },
+    { key: "plan", href: `/${lang}/plan`, icon: CalendarDays, prefix: false },
     { key: "workouts", href: `/${lang}/workout`, icon: Dumbbell, prefix: true },
     { key: "library", href: `/${lang}/library`, icon: LibraryBig, prefix: true },
   ];

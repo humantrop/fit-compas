@@ -96,6 +96,8 @@ export const sr: ClientsCopy = {
     doneMatched: "Odrađeno",
     doneOther: "Trenirao, ali drugi trening",
     missed: "Propušteno",
+    movedFrom: "Klijent pomerio sa {date}",
+    movedTo: "Klijent pomerio na {date}",
 
     historyHeading: "Raniji planovi",
     historyEmpty: "Ovo mu je prvi plan.",

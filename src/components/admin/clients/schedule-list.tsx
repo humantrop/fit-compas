@@ -3,7 +3,8 @@ import { Check, Circle, Dot, Moon } from "lucide-react";
 import { Surface } from "@/components/ui/surface";
 import { translate } from "@/db/schema/i18n";
 import type { ClientsCopy } from "@/lib/clients/copy";
-import { formatDayNumber, formatWeekday } from "@/lib/clients/format";
+import { fill } from "@/lib/clients/copy";
+import { formatDay, formatDayNumber, formatWeekday } from "@/lib/clients/format";
 import type { ScheduleEntry } from "@/lib/clients/types";
 import { localeTags, type Locale } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
@@ -14,7 +15,9 @@ import { cn } from "@/lib/utils";
  * A list rather than a month grid: the useful question on this screen is "is
  * this person keeping up", and that reads down a column of consecutive days —
  * a month view spends most of its space on cells nobody is looking at. Feature
- * 13 gives the client the calendar view of the same data.
+ * 13 gives the client the calendar view of the same data, and any day they
+ * moved shows up here too — both screens read one overlay, so neither can
+ * describe a week the other does not.
  */
 export function ScheduleList({
   entries,
@@ -86,6 +89,25 @@ export function ScheduleList({
 
                 {entry.isToday ? (
                   <span className="text-brand-300">{detail.today}</span>
+                ) : null}
+
+                {/* Said out loud rather than shown only as a shifted row: the
+                    coach wrote the program, so a day that is not where they
+                    put it needs to name who moved it. */}
+                {entry.movedFrom ? (
+                  <span className="text-ink-400">
+                    {fill(detail.movedFrom, {
+                      date: formatDay(entry.movedFrom, tag),
+                    })}
+                  </span>
+                ) : null}
+
+                {entry.movedTo ? (
+                  <span className="text-ink-400">
+                    {fill(detail.movedTo, {
+                      date: formatDay(entry.movedTo, tag),
+                    })}
+                  </span>
                 ) : null}
 
                 {plan.note ? (

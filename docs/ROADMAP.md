@@ -6,7 +6,7 @@
 
 **Live:** https://fit-compas.vercel.app · **Repo:** https://github.com/humantrop/fit-compas
 
-Poslednje ažurirano: 21.08.2026. · završen feature 12 — klijenti u adminu
+Poslednje ažurirano: 21.08.2026. · završen feature 13 — moj plan (klijent)
 (05–11 su stigli paralelno, svaki iz svoje sesije)
 
 ---
@@ -26,8 +26,9 @@ Poslednje ažurirano: 21.08.2026. · završen feature 12 — klijenti u adminu
 | 08 | Programi — nedelje × dani, dani odmora | ✅ · birač treninga radi otkad je 07 stigao |
 | 09 | Biblioteka za klijenta — pretraga i filteri | ✅ · police za treninge i programe još nisu upaljene |
 | 10 | Workout runner — tajmer, runde, pauze, log serija | ✅ · vozi demo planove, ne treninge iz baze |
-| 11 | Dashboard klijenta — danas, nedelja, niz, statistika | ✅ · raspored čeka 12/13 |
+| 11 | Dashboard klijenta — danas, nedelja, niz, statistika | ✅ · raspored stigao sa 13 |
 | 12 | Klijenti — lista, profil, dodela programa, raspored, beleške | ✅ |
+| 13 | Moj plan — kalendar klijenta, označavanje urađenog, pomeranje termina | ✅ · „Počni trening" čeka `dbRunnerSource` |
 
 ### Šta konkretno radi
 
@@ -101,7 +102,25 @@ Brojke o treningu ne vode se nigde posebno — čitaju se iz `workout_sessions`,
 
 Sve to nosi migracija [`supabase/migrations/0012_clients.sql`](../supabase/migrations/0012_clients.sql), pisana ručno da bi RLS stigao u istoj migraciji koja pravi tabele (provera preko PostgREST-a vraća `[]`, a upis anon ključem `42501`). Tabele su u `src/db/schema/clients.ts` i još nisu izvezene iz `schema/index.ts` — isti dogovor koji drži i runner, dok paralelne sesije ne slegnu. Tekst ekrana je u [`src/lib/clients/copy/`](../src/lib/clients/copy/), tipizovan, iz istog razloga iz kog i biblioteka ima svoj.
 
-**Feature 13 nasleđuje gotovu računicu.** [`src/lib/clients/schedule.ts`](../src/lib/clients/schedule.ts) je čist modul bez servera: `planDayFor`, `planRange` i `planProgress` prevode „nedelja 3, dan 2" u „četvrtak, 9." Kalendar klijenta i `dbScheduleSource` iz [`src/lib/dashboard/schedule-source.ts`](../src/lib/dashboard/schedule-source.ts) treba da ga pozovu nad aktivnim redom iz `client_assignments`, a ne da pišu svoju verziju — dva različita računa istog dana su način na koji trener i klijent vide različit raspored.
+**Feature 13 je nasledio gotovu računicu i pozvao je, umesto da napiše svoju.** [`src/lib/clients/schedule.ts`](../src/lib/clients/schedule.ts) je čist modul bez servera: `planDayFor`, `planSlots` i `planProgress` prevode „nedelja 3, dan 2" u „četvrtak, 9." Kalendar klijenta, `dbScheduleSource` i raspored na profilu klijenta zovu sva tri istu funkciju nad aktivnim redom iz `client_assignments` — dva različita računa istog dana su način na koji trener i klijent vide različit raspored.
+
+**Moj plan.** `/[lang]/plan` — isti raspored iz ugla vežbača: mesečna mreža Monday-first, panel za dan koji je otvoren i lista sledećih 14 dana ispod. Ništa od kalendara se ne čuva. Feature 12 ga je napravio kao čistu funkciju jednog datuma i to ovde ostaje — ekran zove isti `planDayFor` koji zove i trenerov, pa preko rezultata prevuče ono što je klijent sam pomerio. Program koji trener izmeni zato stiže do svih koji su na njemu, a dve strane ne mogu da čitaju različitu nedelju iz istog plana.
+
+Koji mesec je otvoren i koji je dan izabran stoje u query stringu, ne u stanju komponente — kao u biblioteci i u listi vežbi. Prikaz je link koji se šalje, `Nazad` znači nešto, a ceo ekran osim panela sa dugmadima je serverski.
+
+**Klijent sme dve stvari, i granica je ona koju je povukla migracija 0012:** plan je trenerov, nedelja oko njega je klijentova. Nema akcije koja menja koji je program, šta stoji kog dana, ni kad plan počinje.
+
+**„Označi kao odrađeno"** upisuje pravi red u `workout_sessions`, ne zastavicu pored plana. Sve što broji treninge — niz, traka nedelje, trenerova kolona rasporeda — čita tu tabelu, pa bi završen trening zapisan bilo gde drugde bio drugi odgovor na pitanje „da li sam trenirao u utorak". Red nosi nula serija, nula kilaže i nula sekundi, jer je to sve što se o njemu zna; nova kolona `logged_manually` je ono što aplikaciji dozvoljava da to kaže naglas i što poništavanju dozvoljava da obriše samo takav red — nikad onaj koji je runner zapisao. `started_at` je podne tog dana u čitaočevoj zoni, sračunato u SQL-u, jer se grupisanje po danima radi istim `at time zone`.
+
+**„Pomeri termin"** je jedan red u `plan_day_moves` — redak izuzetak, ne materijalizovan kalendar. Oba kraja imaju `unique` indeks, pa je preslikavanje jedan-na-jedan i ne treba mu pravilo za sudar koje niko ne bi video. Prozor je 21 dan, meren od dana na koji je *program* stavio trening a ne od mesta na kom trenutno stoji — inače bi svako pomeranje resetovalo budžet i trening bi u tri koraka izašao iz plana. Pomeranje već pomerenog dana ispravlja postojeći red umesto da pravi lanac, jer „petak na nedelju pa na ponedeljak" niko ne misli — misli se „petak se radi u ponedeljak".
+
+Trenerov raspored na profilu klijenta čita isti overlay ([`src/lib/plan/moves.ts`](../src/lib/plan/moves.ts)) i piše ko je dan pomerio. Overlay je čist modul bez servera baš zato: dva mesta koja isto računaju različito su način na koji trener i klijent vide različitu nedelju.
+
+**Šav iz feature-a 11 je popunjen.** [`src/lib/dashboard/schedule-source.ts`](../src/lib/dashboard/schedule-source.ts) više nije `pending` — `dbScheduleSource` čita dodelu, mrežu programa i klijentova pomeranja, i ništa u `components/dashboard/` se nije promenilo. To je i bila poenta pisanja ekrana nad interfejsom. Klijent bez programa i dalje dobija „plan još nije dodeljen", što je tačna rečenica a ne prazna nedelja.
+
+Sve nosi migracija [`supabase/migrations/0013_client_plan.sql`](../supabase/migrations/0013_client_plan.sql), pisana ručno da bi RLS stigao u istoj migraciji koja pravi tabelu (provera preko PostgREST-a vraća `[]`). Tabela je u `src/db/schema/plan.ts` i još nije izvezena iz `schema/index.ts` — isti dogovor koji drži runner i klijente. Tekst ekrana je u [`src/lib/plan/copy/`](../src/lib/plan/copy/), tipizovan.
+
+**Šta još ne radi:** dugme „Počni trening" na danu iz plana. Runner i dalje vozi ogledne planove — `dbRunnerSource` sa spiska za feature 07 još nije napisan — pa umesto dugmeta stoji rečenica koja to kaže. Označavanje i pomeranje rade bez njega.
 
 **Ljuska klijentskog dela.** Feature 09 i 10 su imali svako svoje zaglavlje, uz napomenu da 11 pravi pravo — evo ga: [`src/components/app/app-shell.tsx`](../src/components/app/app-shell.tsx), sa linkovima u zaglavlju na širokom ekranu i donjom trakom sa tabovima na telefonu. `library-chrome.tsx` i `runner-shell.tsx` su obrisani, a biblioteka i runner sada idu kroz njega. I dalje je komponenta a ne `layout.tsx` u grupi ruta: runner je jedini ekran koji traku sa tabovima **ne** sme da ima, jer je promašen dodir usred serije prekinut trening — to je `tabs={false}`, a ne druga grupa ruta.
 
@@ -115,7 +134,7 @@ Svaka stavka je jedna sesija. Redosled je namerno takav da svaka gradi na pretho
 |---|---|---|---|
 | **10** ✅ | **Workout runner** | Izvođenje treninga: tajmer, runde, pauze, video, beleženje serija i težina | 07 |
 | **12** ✅ | **Klijenti (admin)** | Lista klijenata, profil, dodela programa, raspored po danima, beleške vidljive samo treneru | 08 |
-| **13** | **Moj plan (klijent)** | Kalendar sopstvenih treninga, označavanje kao urađeno, pomeranje termina | 12 |
+| **13** ✅ | **Moj plan (klijent)** | Kalendar sopstvenih treninga, označavanje kao urađeno, pomeranje termina | 12 |
 | **14** | **Napredak** | Merenja, progress fotografije, grafikoni kretanja, niz odrađenih dana | 13 |
 | **15** | **Notifikacije** | Notification centar, zakazivanje, ponavljanje, mejl obaveštenja | 12 |
 | **16** | **Nalog i podešavanja** | Profil, jedinice mere, jezik, promena lozinke | 11 |
@@ -261,6 +280,8 @@ Mora vratiti `[]`.
 
 **Drizzle veže JS niz kao jedan parametar.** `` sql`... where id = any(${ids}::uuid[])` `` izgleda ispravno i tipovi se poklapaju, ali Postgres dobije ceo niz kao jednu vrednost i vrati `malformed array literal: "6d6f94da-…"`. Pogađa svaki upit koji filtrira po listi id-jeva, i vidi se tek u runtime-u. Umesto toga ide `in (...)` sa po jednim placeholderom po vrednosti — `sql.join(ids.map((id) => sql`${id}::uuid`), sql`, `)` — čime svaka vrednost ostaje vezana, a ne interpolirana. Primer je `idList()` u [`src/lib/clients/queries.ts`](../src/lib/clients/queries.ts).
 
+**`at time zone` se vezuje jače od `+`.** `` ${day}::date + time '12:00' at time zone ${tz} `` ne znači „podne tog dana u toj zoni" — Postgres to čita kao `date + (time at time zone tz)`, dobije `timetz` i vrati vrednost koja nema veze sa traženim danom. Zagrade su obavezne: `` (${day}::date + time '12:00') at time zone ${tz} ``. Pogađa svaki upis koji pravi instant iz kalendarskog dana, a greška se ne vidi u tipovima — vidi se tek kad sesija sleti na pogrešan dan. Primer je `markDayDoneAction` u [`src/lib/plan/actions.ts`](../src/lib/plan/actions.ts).
+
 **Migracija ne sme da rekreira `profiles`.** Ta tabela je vlasništvo `supabase/migrations/0001`, gde dobija FK ka `auth.users` i RLS politike. `CREATE TABLE` iz Drizzle migracije je zakomentarisan.
 
 ---
@@ -303,6 +324,7 @@ src/
   lib/auth/            server akcije, sesija, klasifikacija ruta
   lib/taxonomy/        rečnici: definicije, upiti, server akcije
   lib/workouts/        builder: zod šema, upiti, akcije, procena trajanja
+  lib/plan/            klijentov kalendar: overlay pomeranja, upiti, akcije
   lib/supabase/        browser / server / admin klijent, refresh sesije
   lib/i18n/            konfiguracija i učitavanje rečnika
   proxy.ts             jezik + zaštita ruta

@@ -11,5 +11,5 @@ export function getClientsCopy(locale: Locale): ClientsCopy {
   return COPY[locale];
 }
 
-export { plural } from "./types";
+export { fill, plural } from "./types";
 export type { ClientsCopy, Plural } from "./types";

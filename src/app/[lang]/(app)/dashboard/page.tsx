@@ -18,7 +18,7 @@ import { getDashboardCopy } from "@/lib/dashboard/copy";
 import { dayKeyOf, shiftDay, weekdayIndex, weekOf } from "@/lib/dashboard/days";
 import { greetingFor } from "@/lib/dashboard/format";
 import { loadDashboardStats, totalsSince } from "@/lib/dashboard/queries";
-import { getScheduleSource, isSchedulePending } from "@/lib/dashboard/schedule-source";
+import { getScheduleSource } from "@/lib/dashboard/schedule-source";
 import { getTimeZone } from "@/lib/dashboard/timezone-server";
 import type { ScheduledDay, WeekDay } from "@/lib/dashboard/types";
 import { isLocale, localeTags } from "@/lib/i18n/config";
@@ -43,11 +43,12 @@ const SUGGESTIONS = 4;
  *
  * Everything on it is derived from what the runner already wrote down —
  * `workout_sessions`, one row per performed workout — rather than from a
- * second set of counters kept in parallel. The one thing it cannot derive is
- * what the coach *planned*, because assigning a program to a person is feature
- * 12 and putting it on a calendar is 13. That gap goes through
- * `lib/dashboard/schedule-source.ts` and shows as "no plan assigned yet",
- * which is a true statement rather than an empty week.
+ * second set of counters kept in parallel. What the coach *planned* comes
+ * through `lib/dashboard/schedule-source.ts`, which features 12 and 13 filled
+ * in: the assignment, the program grid and the client's own moved days. A
+ * client with no program still gets "no plan assigned yet" rather than an
+ * empty week, which is a true statement instead of a blank that reads as a
+ * bug.
  *
  * `connection()` because everything below is per-user and time-dependent:
  * `app/[lang]/layout.tsx` has `generateStaticParams`, so without it the build
@@ -100,7 +101,7 @@ export default async function DashboardPage({
 
   const activityByDay = new Map(stats.days.map((day) => [day.day, day]));
   const scheduleByDay = new Map<string, ScheduledDay>(
-    scheduled.map((day) => [day.day, day]),
+    scheduled.days.map((day) => [day.day, day]),
   );
 
   const weekDays: WeekDay[] = week.map((day) => {
@@ -165,7 +166,7 @@ export default async function DashboardPage({
             open={stats.open}
             doneToday={stats.streak.activeToday}
             scheduled={scheduleByDay.get(today) ?? null}
-            schedulePending={isSchedulePending()}
+            schedulePending={!scheduled.assigned}
             suggestion={suggestion}
           />
         </div>

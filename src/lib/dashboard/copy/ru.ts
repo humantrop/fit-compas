@@ -12,6 +12,7 @@ export const ru: DashboardCopy = {
     admin: "Админ-панель",
     tabs: {
       today: "Сегодня",
+      plan: "План",
       workouts: "Тренировки",
       library: "Библиотека",
     },

@@ -97,6 +97,9 @@ export type ClientsCopy = {
     doneMatched: string;
     doneOther: string;
     missed: string;
+    /** The client moved this day themselves — feature 13. "{date}" is filled. */
+    movedFrom: string;
+    movedTo: string;
 
     historyHeading: string;
     historyEmpty: string;
@@ -138,6 +141,16 @@ export type ClientsCopy = {
     string
   >;
 };
+
+/** `fill("Moved to {date}", { date: "24. avgust" })`. */
+export function fill(
+  template: string,
+  values: Record<string, string | number>,
+): string {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) =>
+    key in values ? String(values[key]) : match,
+  );
+}
 
 export function plural(plurals: Plural, n: number, localeTag: string): string {
   const category = new Intl.PluralRules(localeTag).select(n);

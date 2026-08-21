@@ -13,6 +13,7 @@ export const sr: DashboardCopy = {
     admin: "Admin panel",
     tabs: {
       today: "Danas",
+      plan: "Plan",
       workouts: "Treninzi",
       library: "Biblioteka",
     },

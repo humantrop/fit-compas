@@ -95,6 +95,8 @@ export const ru: ClientsCopy = {
     doneMatched: "Сделано",
     doneOther: "Тренировался, но другую тренировку",
     missed: "Пропущено",
+    movedFrom: "Клиент перенёс с {date}",
+    movedTo: "Клиент перенёс на {date}",
 
     historyHeading: "Прежние планы",
     historyEmpty: "Это его первый план.",

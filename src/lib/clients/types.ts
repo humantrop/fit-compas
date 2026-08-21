@@ -99,6 +99,14 @@ export type SessionView = {
 /** A scheduled day with what actually happened on it stitched on. */
 export type ScheduleEntry = {
   plan: PlanDay;
+  /**
+   * The two ends of a day the *client* moved (feature 13). The trainer reads
+   * the rearranged week, not the one the program alone would produce — a coach
+   * and a client looking at different Tuesdays is the failure this whole
+   * derived-calendar arrangement exists to avoid.
+   */
+  movedFrom: DayKey | null;
+  movedTo: DayKey | null;
   isToday: boolean;
   isPast: boolean;
   /** Finished sessions logged on that calendar day. */

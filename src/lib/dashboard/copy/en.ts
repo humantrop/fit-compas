@@ -12,6 +12,7 @@ export const en: DashboardCopy = {
     admin: "Admin panel",
     tabs: {
       today: "Today",
+      plan: "Plan",
       workouts: "Workouts",
       library: "Library",
     },

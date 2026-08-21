@@ -80,6 +80,18 @@ export const workoutSessions = pgTable(
     rpe: smallint("rpe"),
     notes: text("notes"),
 
+    /**
+     * The client ticked the day off their plan instead of running it here
+     * (feature 13, column added by `supabase/migrations/0013_client_plan.sql`).
+     *
+     * Such a row carries zero sets, zero volume and zero seconds, because that
+     * is everything that is known about it. It still lives in this table
+     * rather than beside the plan: the streak, the week strip and the
+     * trainer's schedule column all count sessions, and a completion recorded
+     * anywhere else would be a second answer to "did I train on Tuesday".
+     */
+    loggedManually: boolean("logged_manually").notNull().default(false),
+
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),
