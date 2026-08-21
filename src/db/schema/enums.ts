@@ -52,3 +52,21 @@ export const metricKind = pgEnum("metric_kind", [
   "height",
   "resistance",
 ]);
+
+/**
+ * Where a block sits in the session. Warm-up and cool-down are their own kind
+ * rather than a flag on an ordinary block: the runner treats them differently
+ * (no logging, no RPE prompt) and the client library shows them collapsed.
+ */
+export const workoutSectionKind = pgEnum("workout_section_kind", [
+  "warmup",
+  "main",
+  "cooldown",
+]);
+
+/**
+ * How one line is counted. `exercises.default_mode` proposes it; the coach
+ * overrides per workout, because the same movement is reps in one session and
+ * a timed hold in the next.
+ */
+export const setMode = pgEnum("set_mode", ["reps", "time"]);

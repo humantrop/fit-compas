@@ -64,7 +64,7 @@ const GROUPS: { label: keyof AdminNavCopy | null; items: Item[] }[] = [
     label: "groupContent",
     items: [
       { key: "exercises", path: "/exercises", icon: Dumbbell, soon: true },
-      { key: "workouts", path: "/workouts", icon: ListChecks, soon: true },
+      { key: "workouts", path: "/workouts", icon: ListChecks },
       { key: "programs", path: "/programs", icon: CalendarRange, soon: true },
     ],
   },

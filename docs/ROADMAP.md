@@ -6,7 +6,8 @@
 
 **Live:** https://fit-compas.vercel.app · **Repo:** https://github.com/humantrop/fit-compas
 
-Poslednje ažurirano: 21.08.2026. · završen feature 05 — admin shell i konfiguracija
+Poslednje ažurirano: 21.08.2026. · završen feature 07 — workout builder
+(07 je građen paralelno sa 06, na grani `feat/07-workout-builder`)
 
 ---
 
@@ -20,6 +21,7 @@ Poslednje ažurirano: 21.08.2026. · završen feature 05 — admin shell i konfi
 | 03 | Autentikacija — Supabase, prijava/registracija/reset, zaštita ruta | ✅ |
 | 04 | Baza — Drizzle šema, taksonomije, RLS | ✅ |
 | 05 | Admin shell + Configuration | ✅ |
+| 07 | Workout builder | ✅ |
 
 ### Šta konkretno radi
 
@@ -27,15 +29,29 @@ Poslednje ažurirano: 21.08.2026. · završen feature 05 — admin shell i konfi
 
 **Dizajn.** Tamna mornaričko-plava podloga, električna plava kao primarna, staklene površine, bento raspored. Tokeni su u [`src/app/globals.css`](../src/app/globals.css) kroz Tailwind 4 `@theme`. Sve kartice idu kroz `<Surface>` — nigde ad-hoc `bg-white/5`.
 
-**Jezici.** `app/[lang]` segment, `proxy.ts` bira jezik po redosledu kolačić → `Accept-Language` → srpski. Rečnici su code-split, sva tri imaju identično stablo od 209 ključeva (`npm run check:i18n` to proverava).
+**Jezici.** `app/[lang]` segment, `proxy.ts` bira jezik po redosledu kolačić → `Accept-Language` → srpski. Rečnici su code-split, sva tri imaju identično stablo od 328 ključeva (`npm run check:i18n` to proverava).
 
 **Auth.** Registracija → potvrda mejla → prijava → zaštićena ruta → odjava, sve radi uživo. Postoji i reset lozinke. Greške se vraćaju kao kodovi pa se prevode u rečniku — korisnik vidi srpsku poruku iako Supabase odgovara engleski.
 
-**Baza.** 13 tabela, 6 enuma, PostgreSQL 17.6. Seed: 30 komada opreme, 23 mišićne grupe sa hijerarhijom, 10 ciljeva, 12 aktivnosti, 10 zdravstvenih stanja, 27 metrika po opremi — sve na tri jezika.
+**Baza.** 18 tabela, 8 enuma, PostgreSQL 17.6. Seed: 30 komada opreme, 23 mišićne grupe sa hijerarhijom, 10 ciljeva, 12 aktivnosti, 10 zdravstvenih stanja, 27 metrika po opremi — sve na tri jezika.
 
 **Admin.** `/[lang]/admin` — levi meni sa celim spiskom budućih ekrana (ono što još ne postoji stoji sa oznakom „uskoro“ i ne klikće se), mobilna fioka, `requireAdmin` u layout-u. Konfiguracija uređuje svih pet rečnika: dodavanje, izmena naziva na tri jezika, redosled strelicama, gašenje i vraćanje, nadgrupa kod mišića, izbor mernih vrednosti kod opreme. Pretraga i filter aktivno/ugašeno rade nad učitanom listom.
 
 Dve stvari koje ovaj ekran namerno **ne** radi: ne briše i ne menja skraćenicu. Brisanje bi ili srušilo strani ključ ili kaskadno pojelo oznake na gotovim vežbama, pa ugašena stavka samo nestaje iz svih birača a postojeće oznake ostaju. Skraćenica je ono na šta pokazuju linkovi, seed i sačuvani filteri — preimenovanje je menja jedino ako se to dozvoli, pa se ne dozvoljava.
+
+**Treninzi.** `/[lang]/admin/workouts` — lista sa pretragom i filterom objavljeno / u izradi, i builder na `/workouts/<id>`.
+
+Trening ima tri nivoa: **trening → blok → linija**. Blok je zagrevanje, rad ili smirivanje; broj rundi stoji na bloku, pa je kružni trening samo blok sa tri runde, bez posebne tabele za to. Linija je jedna vežba: reps ili vreme, broj serija, RPE (dozvoljene su polovine — 7.5 je stvarna preporuka), tempo u obliku `3-1-1-0`, i napomena.
+
+**Tri nivoa pauze**, svaki tamo gde i pripada: između serija stoji na liniji, između rundi i posle bloka stoje na bloku.
+
+**Dinamička polja po opremi** nisu nigde ukucana. Linija čija vežba ide na traku za trčanje traži nagib, brzinu, tempo i razdaljinu; linija sa šipkom traži težinu. To se izvodi iz `vežba → oprema → equipment_metrics`, a sve tri se uređuju iz Konfiguracije — dodaš spravi metriku i ona se pojavi u builderu, bez ijedne izmene u kodu.
+
+**Live preview** ispod forme prikazuje trening onako kako će ga videti klijent, i menja se dok kucaš. Lepljiva traka na vrhu drži trajanje, broj blokova, vežbi i serija. Trajanje se ne kuca — računa ga [`src/lib/workouts/estimate.ts`](../src/lib/workouts/estimate.ts), isti kod i u pregledu i pri čuvanju, pa kartica i builder ne mogu da pokažu različit broj. Jednostrane vežbe se broje dvaput.
+
+Čuvanje briše i ponovo upisuje sve blokove i linije u jednoj transakciji. Diff ovde ništa ne bi kupio — trening je nekoliko desetina redova, uređuje ga jedna osoba, a ovako je i promena redosleda besplatna: pozicija je prosto indeks u nizu.
+
+**Zavisnost od 06.** Builder čita iz tabele `exercises` — dok 06 ne unese nijednu vežbu, birač vežbi prikazuje prazno stanje i objašnjava zašto. Ništa drugo ne čeka 06.
 
 ---
 
@@ -46,7 +62,6 @@ Svaka stavka je jedna sesija. Redosled je namerno takav da svaka gradi na pretho
 | # | Feature | Šta se dobija | Zavisi od |
 |---|---|---|---|
 | **06** | **Vežbe + video** | CRUD vežbi, upload videa direktno u Supabase Storage, potpisani URL za gledanje, admin lista sa filterima | 05 |
-| **07** | **Workout builder** | Sklapanje treninga: zagrevanje / grupe sa rundama / smirivanje, reps vs vreme, RPE i tempo, tri nivoa pauze, dinamička polja po opremi, live preview | 06 |
 | **08** | **Programi** | Višenedeljni programi — nedelje × dani → treninzi, sa danima odmora | 07 |
 | **09** | **Biblioteka za klijenta** | Pretraga i filtriranje vežbi, treninga i programa iz ugla vežbača | 06 |
 | **10** | **Workout runner** | Izvođenje treninga: tajmer, runde, pauze, video, beleženje serija i težina | 07 |
@@ -130,6 +145,10 @@ Mora vratiti `[]`.
 
 **`"use server"` fajl sme da izvozi samo async funkcije.** `export const IDLE = {...}` u takvom fajlu je build greška. Tipovi i konstante idu u zaseban fajl.
 
+**Drizzle umotava greške iz drajvera.** `catch (error) { error.code === "23505" }` nikad ne pogodi — u drizzle-orm 0.45 stiže `DrizzleQueryError`, a pravi `PostgresError` sa SQLSTATE kodom visi na `error.cause`. Bez odmotavanja svaki prekršaj ograničenja izađe kao „nepoznata greška", pa korisnik dobije „pokušaj ponovo" na duplikat skraćenice — do kraja sveta. Rešeno u [`src/lib/workouts/actions.ts`](../src/lib/workouts/actions.ts) funkcijom `pgErrorCode`, koja prošeta lanac `cause`. **Isti obrazac postoji i u `src/lib/taxonomy/actions.ts` iz feature-a 05 i tamo još nije popravljen.**
+
+**Unutar `` sql`` `` šablona Drizzle ispušta kvalifikator tabele.** `` sql`... where ${a.workoutId} = ${b.id}` `` se renderuje kao `where "workout_id" = "id"`, a ne kao `where "a"."workout_id" = "b"."id"`. U korelisanom podupitu to je `column reference "id" is ambiguous` — greška koja se vidi tek u runtime-u, jer se tip poklapa. U podupitima idu ispisana imena tabela i sopstveni aliasi, ne interpolacija.
+
 **Migracija ne sme da rekreira `profiles`.** Ta tabela je vlasništvo `supabase/migrations/0001`, gde dobija FK ka `auth.users` i RLS politike. `CREATE TABLE` iz Drizzle migracije je zakomentarisan.
 
 ---
@@ -162,6 +181,7 @@ src/
   app/api/             route handleri (auth confirm, kasnije Polar webhook)
   components/ui/       Surface, Button, Field, Eyebrow
   components/admin/    admin shell, editor taksonomija
+    workouts/          lista, builder, birač vežbi, live preview
   components/site/     header, footer, prebacivač jezika
   components/auth/     forme
   components/marketing/
@@ -170,6 +190,7 @@ src/
   dictionaries/        sr.json, en.json, ru.json — identično stablo ključeva
   lib/auth/            server akcije, sesija, klasifikacija ruta
   lib/taxonomy/        rečnici: definicije, upiti, server akcije
+  lib/workouts/        builder: zod šema, upiti, akcije, procena trajanja
   lib/supabase/        browser / server / admin klijent, refresh sesije
   lib/i18n/            konfiguracija i učitavanje rečnika
   proxy.ts             jezik + zaštita ruta
