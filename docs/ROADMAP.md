@@ -259,6 +259,8 @@ Mora vratiti `[]`.
 
 **Unutar `` sql`` `` šablona Drizzle ispušta kvalifikator tabele.** `` sql`... where ${a.workoutId} = ${b.id}` `` se renderuje kao `where "workout_id" = "id"`, a ne kao `where "a"."workout_id" = "b"."id"`. U korelisanom podupitu to je `column reference "id" is ambiguous` — greška koja se vidi tek u runtime-u, jer se tip poklapa. U podupitima idu ispisana imena tabela i sopstveni aliasi, ne interpolacija.
 
+**Drizzle veže JS niz kao jedan parametar.** `` sql`... where id = any(${ids}::uuid[])` `` izgleda ispravno i tipovi se poklapaju, ali Postgres dobije ceo niz kao jednu vrednost i vrati `malformed array literal: "6d6f94da-…"`. Pogađa svaki upit koji filtrira po listi id-jeva, i vidi se tek u runtime-u. Umesto toga ide `in (...)` sa po jednim placeholderom po vrednosti — `sql.join(ids.map((id) => sql`${id}::uuid`), sql`, `)` — čime svaka vrednost ostaje vezana, a ne interpolirana. Primer je `idList()` u [`src/lib/clients/queries.ts`](../src/lib/clients/queries.ts).
+
 **Migracija ne sme da rekreira `profiles`.** Ta tabela je vlasništvo `supabase/migrations/0001`, gde dobija FK ka `auth.users` i RLS politike. `CREATE TABLE` iz Drizzle migracije je zakomentarisan.
 
 ---
