@@ -69,7 +69,8 @@ export const sr: NotificationsCopy = {
     endsHint: "Ostavi prazno da ide dok ga ne zaustaviš.",
 
     emailLabel: "Pošalji i na mejl",
-    emailHint: "Uz obaveštenje u aplikaciji stiže i mejl.",
+    emailHint:
+      "Uz obaveštenje u aplikaciji stiže i mejl — svima koji ga nisu ugasili u svom nalogu.",
 
     previewLabel: "Prvo slanje",
     previewNone: "Ovaj raspored nema nijedno slanje.",

@@ -99,6 +99,7 @@ export const en: DashboardCopy = {
     time: "Time",
     kg: "kg",
     tonnes: "t",
+    lb: "lb",
     hours: "h",
     minutes: "min",
     unavailable:

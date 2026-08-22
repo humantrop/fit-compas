@@ -68,7 +68,8 @@ export const en: NotificationsCopy = {
     endsHint: "Leave empty to keep going until you stop it.",
 
     emailLabel: "Send by email too",
-    emailHint: "An email goes out alongside the in-app notification.",
+    emailHint:
+      "An email goes out alongside the in-app notification, to everyone who has not turned email off in their account.",
 
     previewLabel: "First send",
     previewNone: "This schedule never fires.",

@@ -1,4 +1,5 @@
 import { Surface } from "@/components/ui/surface";
+import type { UnitSystem } from "@/lib/account/units";
 import type { ClientsCopy } from "@/lib/clients/copy";
 import {
   formatDuration,
@@ -23,6 +24,7 @@ export function ActivityList({
   available,
   lang,
   copy,
+  units,
   timeZone,
 }: {
   totals: ClientDetail["totals"];
@@ -30,6 +32,12 @@ export function ActivityList({
   available: boolean;
   lang: Locale;
   copy: ClientsCopy;
+  /**
+   * The trainer's own system, not this client's (feature 16). Units belong to
+   * whoever is reading the screen: a list of twelve clients where each row
+   * carried its own unit would be twelve numbers that cannot be compared.
+   */
+  units: UnitSystem;
   timeZone: string;
 }) {
   const detail = copy.detail;
@@ -48,7 +56,7 @@ export function ActivityList({
       <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         <Tile label={detail.sessions} value={formatNumber(totals.sessions, tag)} />
         <Tile label={detail.sets} value={formatNumber(totals.sets, tag)} />
-        <Tile label={detail.volume} value={formatVolume(totals.volume, tag)} />
+        <Tile label={detail.volume} value={formatVolume(totals.volume, tag, units)} />
         <Tile label={detail.time} value={formatDuration(totals.seconds)} />
       </dl>
 

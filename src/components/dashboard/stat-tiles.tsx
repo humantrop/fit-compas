@@ -1,4 +1,5 @@
 import { Surface } from "@/components/ui/surface";
+import type { UnitSystem } from "@/lib/account/units";
 import type { DashboardCopy } from "@/lib/dashboard/copy";
 import { formatCount, formatDuration, formatVolume } from "@/lib/dashboard/format";
 import type { Totals } from "@/lib/dashboard/types";
@@ -19,11 +20,14 @@ export function StatTiles({
   rows,
   copy,
   localeTag,
+  units,
   unavailable,
 }: {
   rows: { label: string; totals: Totals }[];
   copy: DashboardCopy["stats"];
   localeTag: string;
+  /** The reader's own system — tonnage is the one tile that has a unit. */
+  units: UnitSystem;
   unavailable: boolean;
 }) {
   return (
@@ -54,7 +58,7 @@ export function StatTiles({
               />
               <Tile
                 label={copy.volume}
-                value={formatVolume(row.totals.volume, localeTag, copy)}
+                value={formatVolume(row.totals.volume, localeTag, copy, units)}
               />
               <Tile
                 label={copy.time}

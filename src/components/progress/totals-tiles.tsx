@@ -1,4 +1,5 @@
 import { Surface } from "@/components/ui/surface";
+import type { UnitSystem } from "@/lib/account/units";
 import {
   formatDuration,
   formatNumber,
@@ -22,16 +23,18 @@ import type { ProgressCopy } from "@/lib/progress/copy";
 export function TotalsTiles({
   totals,
   localeTag,
+  units,
   copy,
 }: {
   totals: Totals;
   localeTag: string;
+  units: UnitSystem;
   copy: ProgressCopy;
 }) {
   const tiles = [
     { key: "workouts", value: formatNumber(totals.workouts, localeTag) },
     { key: "sets", value: formatNumber(totals.sets, localeTag) },
-    { key: "volume", value: formatVolume(totals.volume, localeTag) },
+    { key: "volume", value: formatVolume(totals.volume, localeTag, units) },
     { key: "time", value: formatDuration(totals.seconds) },
   ] as const;
 

@@ -197,6 +197,7 @@ export default async function ProgressPage({
           <TotalsTiles
             totals={overview.totals}
             localeTag={localeTag}
+            units={units}
             copy={copy}
           />
 

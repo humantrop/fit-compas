@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { AdminShell } from "@/components/admin/admin-shell";
+import { getAccountCopy } from "@/lib/account/copy";
 import { requireAdmin } from "@/lib/auth/session";
 import { isLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -26,7 +27,11 @@ export default async function AdminLayout({
   const dict = await getDictionary(lang);
 
   return (
-    <AdminShell lang={lang} copy={dict.admin.nav}>
+    <AdminShell
+      lang={lang}
+      copy={dict.admin.nav}
+      accountLabel={getAccountCopy(lang).nav}
+    >
       {children}
     </AdminShell>
   );

@@ -6,7 +6,7 @@
 
 **Live:** https://fit-compas.vercel.app · **Repo:** https://github.com/humantrop/fit-compas
 
-Poslednje ažurirano: 22.08.2026. · završen feature 15 — obaveštenja (centar, zakazivanje, ponavljanje, mejl)
+Poslednje ažurirano: 22.08.2026. · završen feature 16 — nalog i podešavanja (profil, jedinice, jezik, lozinka)
 (05–11 su stigli paralelno, svaki iz svoje sesije)
 
 ---
@@ -31,6 +31,7 @@ Poslednje ažurirano: 22.08.2026. · završen feature 15 — obaveštenja (centa
 | 13 | Moj plan — kalendar klijenta, označavanje urađenog, pomeranje termina | ✅ · „Počni trening" čeka `dbRunnerSource` |
 | 14 | Napredak — merenja, fotografije, grafikoni, niz odrađenih dana | ✅ |
 | 15 | Obaveštenja — centar, zakazivanje, ponavljanje, mejl | ✅ · mejl čeka `RESEND_API_KEY` (feature 17) |
+| 16 | Nalog — profil, jedinice mere, jezik, promena lozinke | ✅ |
 
 ### Šta konkretno radi
 
@@ -132,7 +133,7 @@ Ekran ima dve polovine i podela je poenta. Gornja je telo — ono što su vaga i
 
 **Merenja su „visoka" tabela, ne „široka".** Očigledan oblik je jedan red po danu sa kolonom po delu tela; lepo se čita i loše se crta — svaki grafikon, svaka poslednja vrednost i svaka razlika imenovali bi svoju kolonu, pa bi spisak merenja bio ispisan na desetak mesta. Ovako je merenje *vrednost*, ceo ekran je jedna petlja, a [`src/lib/progress/metrics.ts`](../src/lib/progress/metrics.ts) je jedino mesto koje zna spisak. Enum u bazi je ona polovina koja mora biti migracija.
 
-**Jedinice su kanonske u bazi — kilogrami, centimetri, procenti — a konvertuju se na ivici.** Kolona koja ponekad znači funte je kolona koju niko ne može da nacrta. `profiles.units` odlučuje šta se vidi i šta se čita iz forme; server nikad ne veruje skrivenom polju, jer bi laž bila tiha — težina u funtama upisana kao kilogrami zauvek izgleda kao uverljiv broj. Feature 16 daje prekidač, u bazi se ne menja ništa.
+**Jedinice su kanonske u bazi — kilogrami, centimetri, procenti — a konvertuju se na ivici.** Kolona koja ponekad znači funte je kolona koju niko ne može da nacrta. `profiles.units` odlučuje šta se vidi i šta se čita iz forme; server nikad ne veruje skrivenom polju, jer bi laž bila tiha — težina u funtama upisana kao kilogrami zauvek izgleda kao uverljiv broj. Feature 16 je dao prekidač, u bazi se nije promenilo ništa.
 
 **Grafikoni su ručno pisan SVG, bez biblioteke.** Tri grafika su linija, kolona i mreža kvadrata; zavisnost bi bila veća od njih, stigla bi sa svojim shvatanjem boje i tipografije, i bila bi još jedna stvar koja mora da se slaže sa tokenima. Težak deo je bio izbor brojeva na osi — to je `niceScale` u [`src/lib/progress/series.ts`](../src/lib/progress/series.ts). Konverzija se dešava *pre* skaliranja, ne posle: skalirati kilograme pa prevesti oznake dalo bi osu obeleženu sa 176,4 — 187,4 — 198,4, okruglu u jedinici koju niko ne gleda.
 
@@ -146,7 +147,7 @@ Jedna fotografija po uglu po danu. Poređenje mora da imenuje po jednu sliku za 
 
 Sve nosi migracija [`supabase/migrations/0014_progress.sql`](../supabase/migrations/0014_progress.sql), pisana ručno da bi RLS stigao u istoj migraciji koja pravi tabele (provera preko PostgREST-a vraća `[]`, a upis anon ključem `42501`). Tabele su u `src/db/schema/progress.ts` i još nisu izvezene iz `schema/index.ts` — isti dogovor koji drži runner, klijente i plan. Tekst ekrana je u [`src/lib/progress/copy/`](../src/lib/progress/copy/), tipizovan.
 
-**Šta ovde još nije uniformno:** tonaža na kartici „Ukupno" je i dalje u kilogramima za svakoga. `formatVolume` je zajednički pomoćnik iz feature-a 12 i koristi ga i dashboard, pa prelazak na funte znači izmenu njegovog potpisa na svim pozivima — to ide sa feature-om 16, koji ionako uvodi prekidač za jedinice.
+**Tonaža je dobila jedinice sa feature-om 16.** `formatVolume` — i onaj iz feature-a 12 i onaj sa dashboard-a — sada prima sistem čitaoca, pa kartica „Ukupno“, statistika na dashboard-u i trenerov pregled klijenta mere isto kao i svaki drugi broj na ekranu.
 
 **Obaveštenja.** `/[lang]/admin/notifications` za trenera i `/[lang]/notifications` za klijenta, plus zvonce sa brojem nepročitanih u zaglavlju klijentskog dela.
 
@@ -172,7 +173,27 @@ Sanduče ne označava ništa pročitanim samim prikazom. Ko otvori sanduče, vid
 
 Sve nosi migracija [`supabase/migrations/0015_notifications.sql`](../supabase/migrations/0015_notifications.sql), pisana ručno da bi RLS stigao u istoj migraciji koja pravi tabele (provera preko PostgREST-a vraća `[]` za obe). Obe tabele su i preko RLS-a samo za čitanje — svaki upis ide kroz Server Action na vezi koja RLS zaobilazi, pa nema legitimnog PostgREST upisa koji bi trebalo dozvoliti. Tabele su u `src/db/schema/notifications.ts` i još nisu izvezene iz `schema/index.ts` — isti dogovor koji drži runner, klijente, plan i napredak. Tekst je u [`src/lib/notifications/copy/`](../src/lib/notifications/copy/), tipizovan.
 
-**Šta ovde još ne radi:** mejl dok `RESEND_API_KEY` ne postoji, i klijent nema prekidač da mejlove ugasi — odluka je po poruci, kod trenera. Prekidač ide sa feature-om 16, koji ionako uvodi ekran podešavanja.
+**Šta ovde još ne radi:** mejl, dok `RESEND_API_KEY` ne postoji. Prekidač za klijenta je stigao sa feature-om 16 — `profiles.email_notifications`, čita ga `resolveAudience`, i mora reći „da“ zajedno sa trenerovim `via_email` da bi red uopšte ušao u red čekanja.
+
+**Nalog i podešavanja.** `/[lang]/account` — jedan ekran, četiri kartice: podešavanja, profil, lozinka, odjava. Do njega se stiže ikonicom u zaglavlju, i u klijentskoj ljusci i u admin ljusci, jer trener ima profil, jedinice i lozinku kao i svi ostali. Nije šesti tab: traka sa tabovima je pet stvari zbog kojih se aplikacija otvara, a podešavanja se traže dvaput godišnje.
+
+**Ovaj ekran namerno ne zove `getAccess()`.** Pravilo od feature-a 09 je da svaki ekran sa plaćenim sadržajem zove tu funkciju od dana kad se piše. Ovde je izuzetak, i vidi se tek onog dana kad pravilo počne da grize: kad feature 18 upali paywall, čovek kom je pretplata istekla i dalje mora da može da promeni lozinku, vrati jezik koji čita i ugasi mejlove. Podešavanja iza pretplate znače da je jedini izlaz iz zaključanog naloga — pisati treneru. Ovde nema plaćenog sadržaja, ovde je sam nalog.
+
+**Jedan sistem jedinica — čitaočev.** Broj sa jedinicom se svuda crta u sistemu onoga ko gleda ekran, uključujući i trenera koji gleda tonažu svog klijenta. Alternativa — da ekran o jednoj osobi pređe u *njen* sistem — lepo se čita na profilu i raspada se na listi, gde bi svaki red nosio drugu jedinicu i nijedna dva broja se ne bi poredila. Jedno pravilo, bez izuzetka po ekranu, zapisano u [`src/lib/account/units.ts`](../src/lib/account/units.ts) gde sada živi i tip i oba faktora konverzije.
+
+Tona postoji samo u metričkoj grani: „180 t“ u dva znaka kaže ono što 180 000 kg kaže u šest. Imperijalna grana ostaje u funtama do vrha i namerno ne izmišlja parnjaka — short ton niko ne stavlja na šipku, pa bi „198 tn“ bio broj koji čitalac mora da prevede nazad. Konverzija ide *pre* provere veličine, ne posle, iz istog razloga iz kog grafikoni konvertuju pre skaliranja.
+
+**Jezik se sada pamti u bazi, a ne samo u kolačiću.** Prekidač u zaglavlju je oduvek pisao `fc_locale`, što odlučuje jedino gde sleti `/`. Ono što stvarno znači je `profiles.locale`: feature 15 ga zamrzava u svako obaveštenje pri isporuci, pa je klijent koji čita aplikaciju na engleskom a u bazi ima `sr` dobijao podsetnike na srpskom i nije imao pojma zašto. Prekidač u zaglavlju sada zove istu akciju kao i ekran naloga, i to bez čekanja — navigacija je ono što je čovek tražio, a upis niko ne gleda.
+
+**Lozinka se menja samo uz trenutnu.** Supabase rado menja lozinku na osnovu same sesije, i to je baš ono što ovde treba odbiti: otključan telefon na klupi u teretani *jeste* sesija, i bez ovog polja bi svako ko ga drži mogao da vlasnika izbaci iz sopstvenog naloga u dva dodira. Trenutna se proverava tako što se njome zaista prijavimo — jedina provera koja se ne može odglumiti, jer nema šta drugo da se poredi. Posle uspešne izmene ostali uređaji se odjavljuju: ko menja lozinku, obično ima razlog.
+
+**Opt-out za mejl je kolona na `profiles`, a ne tabela podešavanja.** Nova tabela bi morala da ponovi RLS koji `profiles` nosi od migracije 0001 — čitaj i piši samo svoj red, `role` ne diraj — da bi rekla istu stvar. Podrazumevano je uključeno: klijenti su se prijavili na trening, a podsetnik koji stigne jeste proizvod koji radi; opt-out koji počinje ugašen znači da funkcija ne postoji dok je neko ne potraži.
+
+Trenerov `via_email` i klijentov `email_notifications` su dva odgovora na dva različita pitanja — „zaslužuje li *ova* poruka mejl“ i „primam li uopšte mejlove od ove aplikacije“ — i oba moraju reći „da“. Nijedan ne preglasava drugi, a transport koji ne postoji preglasava oba. Obaveštenje u aplikaciji stiže bez obzira na sve: gašenje mejla ne sme nikoga da košta obaveštenje, samo kopiju.
+
+Sve nosi migracija [`supabase/migrations/0016_account.sql`](../supabase/migrations/0016_account.sql) — jedna kolona, primenjena na živu bazu (provera anon ključem preko PostgREST-a vraća `[]`). Ime, jezik i jedinice su kolone na `profiles` još od migracije 0001; nedostajao je prekidač, ne skladište. Tekst ekrana je u [`src/lib/account/copy/`](../src/lib/account/copy/), tipizovan, iz istog razloga iz kog ga imaju i biblioteka, runner, klijenti, plan, napredak i obaveštenja.
+
+**Šta ovde namerno ne postoji:** promena mejl adrese i avatar. Adresa je i korisničko ime, pa njena izmena znači potvrdu na obe strane i nalog koji je nakratko prijavljen pod jednom a identifikovan drugom — posao koji se radi kako treba ili se ne radi, a sa jednim trenerom se radi ručno. Avatar ima i kantu i kolonu od migracije 0001, ali ga nijedan ekran još ne prikazuje — upload koji niko ne gleda je mrtav teret.
 
 ---
 
@@ -187,7 +208,7 @@ Svaka stavka je jedna sesija. Redosled je namerno takav da svaka gradi na pretho
 | **13** ✅ | **Moj plan (klijent)** | Kalendar sopstvenih treninga, označavanje kao urađeno, pomeranje termina | 12 |
 | **14** ✅ | **Napredak** | Merenja, progress fotografije, grafikoni kretanja, niz odrađenih dana | 13 |
 | **15** ✅ | **Notifikacije** | Notification centar, zakazivanje, ponavljanje, mejl obaveštenja | 12 |
-| **16** | **Nalog i podešavanja** | Profil, jedinice mere, jezik, promena lozinke | 11 |
+| **16** ✅ | **Nalog i podešavanja** | Profil, jedinice mere, jezik, promena lozinke | 11 |
 | **17** | **Mejl + poliranje** | Resend kao SMTP umesto Supabase mailera, mobilni prolaz kroz sve ekrane | 16 |
 | **18** | **Polar naplata** | Checkout, customer portal, webhook, popunjavanje `getAccess()`, paywall ekrani, upravljanje pretplatom u nalogu | 17 |
 | **19** | **Capacitor — mobilna app** | iOS i Android build, push notifikacije, kamera, keep-awake u runneru, deep linkovi | 18 |
@@ -338,6 +359,8 @@ Mora vratiti `[]`.
 
 **Kolona sa vremenom iz `db.execute` nije pouzdano `Date`.** Drizzle svoje dekodere primenjuje samo na upite građene kroz query builder; sirov `` sql`` `` vraća ono što je drajver napravio, a za `timestamptz` to ume da bude string. `.toISOString()` nad tim pada u runtime-u dok tip tvrdi da ne može — ekran sandučeta je pao tačno na tome. Pomoćnik `iso()` postoji i u `lib/clients/queries.ts` i u `lib/notifications/queries.ts`; vredi ih spojiti kad paralelne sesije slegnu.
 
+**`getProfile()` ne sme da čita kolonu koja možda ne postoji.** Ta funkcija je na putu svakog prijavljenog zahteva, a `select` koji pukne vraća „nema profila“ — što aplikacija čita kao „nije prijavljen“ i odgovara redirekcijom na `/login`. Da je `email_notifications` dodat u njen `select`, ceo sajt bi bacao sve na prijavu u periodu između pušanja feature-a 16 i pokretanja migracije 0016 u Studiju, a ništa u logu ne bi reklo zašto. Kolona koja stiže sa migracijom koja još nije primenjena čita se zasebno i u `try/catch` — ovde su to [`src/lib/account/queries.ts`](../src/lib/account/queries.ts) i `optedOut()` u [`src/lib/notifications/audience.ts`](../src/lib/notifications/audience.ts). Cena promašaja je onda jedan prekidač na jednom ekranu umesto cele aplikacije.
+
 **Vercel Cron na Hobby planu ide jednom dnevno.** Raspored `*/15 * * * *` u `vercel.json` je ono što piše, ali plan odlučuje koliko se stvarno izvršava. Feature koji se oslanja na cron mora imati i drugi put do istog posla — kod obaveštenja su to render ekrana (jeftin prolaz, bez mejla) i dugme u admin listi.
 
 ---
@@ -381,6 +404,7 @@ src/
   db/schema/           Drizzle šema
   db/client.ts         konekcija (transaction pooler, prepare:false)
   dictionaries/        sr.json, en.json, ru.json — identično stablo ključeva
+  lib/account/         podešavanja: jedinice, jezik, lozinka, opt-out za mejl
   lib/auth/            server akcije, sesija, klasifikacija ruta
   lib/taxonomy/        rečnici: definicije, upiti, server akcije
   lib/workouts/        builder: zod šema, upiti, akcije, procena trajanja

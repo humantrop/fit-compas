@@ -104,9 +104,13 @@ export type DashboardCopy = {
     sets: string;
     volume: string;
     time: string;
-    /** Unit suffixes. Volume switches to tonnes past 1000 kg. */
+    /**
+     * Unit suffixes. On metric, volume switches to tonnes past 1000 kg; on
+     * imperial it stays in pounds at every magnitude (feature 16).
+     */
     kg: string;
     tonnes: string;
+    lb: string;
     hours: string;
     minutes: string;
     unavailable: string;

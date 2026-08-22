@@ -27,9 +27,44 @@ export type Recipient = {
   locale: Locale;
   /** Null when the address is unreadable — the in-app notification still goes. */
   email: string | null;
+  /**
+   * Their own answer to "do I want email from this app" (feature 16), from
+   * `profiles.email_notifications`. Separate from the trainer's per-message
+   * `via_email`: that one asks whether *this* announcement warrants an email,
+   * and only the recipient can answer the other question. Both have to say yes.
+   */
+  wantsEmail: boolean;
 };
 
 type Row = { id: string; locale: string | null };
+
+/**
+ * Who has turned email off.
+ *
+ * A separate query rather than a column on the main select, and guarded, for
+ * the same reason `getProfile()` does not read it either: this runs on every
+ * dispatch, including on a database where migration 0016 has not been applied
+ * yet, and a select naming a column that is not there fails the whole
+ * resolution — which would cost people their in-app notifications over a
+ * setting about email. Before that migration nobody can have opted out, so an
+ * empty set is not just a safe fallback, it is the correct answer.
+ */
+async function optedOut(ids: string[]): Promise<Set<string>> {
+  if (ids.length === 0) return new Set();
+
+  try {
+    const rows = await db.execute<{ id: string }>(sql`
+      select id::text
+      from public.profiles
+      where id in (${idList(ids)})
+        and email_notifications = false
+    `);
+
+    return new Set([...rows].map((row) => row.id));
+  } catch {
+    return new Set();
+  }
+}
 
 /**
  * `auth.users` is read through raw SQL and never declared as a Drizzle table:
@@ -122,12 +157,14 @@ export async function resolveAudience(
   `);
 
   const people = [...rows];
-  const emails = await emailsFor(people.map((row) => row.id));
+  const ids = people.map((row) => row.id);
+  const [emails, silenced] = await Promise.all([emailsFor(ids), optedOut(ids)]);
 
   return people.map((row) => ({
     id: row.id,
     locale: row.locale && isLocale(row.locale) ? row.locale : "sr",
     email: emails.get(row.id) ?? null,
+    wantsEmail: !silenced.has(row.id),
   }));
 }
 
@@ -143,11 +180,15 @@ export async function recipientById(userId: string): Promise<Recipient | null> {
   const row = [...rows][0];
   if (!row) return null;
 
-  const emails = await emailsFor([row.id]);
+  const [emails, silenced] = await Promise.all([
+    emailsFor([row.id]),
+    optedOut([row.id]),
+  ]);
 
   return {
     id: row.id,
     locale: row.locale && isLocale(row.locale) ? row.locale : "sr",
     email: emails.get(row.id) ?? null,
+    wantsEmail: !silenced.has(row.id),
   };
 }

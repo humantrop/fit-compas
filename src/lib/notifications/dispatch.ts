@@ -85,7 +85,11 @@ async function deliver(
 ): Promise<number> {
   if (recipients.length === 0) return 0;
 
-  const wantsEmail = message.viaEmail && isMailConfigured();
+  // Two yeses, from two different people. The trainer decided this message
+  // warrants an email; each recipient decided whether they take email from this
+  // app at all (feature 16). Neither can overrule the other, and a transport
+  // that does not exist overrules both.
+  const mailable = message.viaEmail && isMailConfigured();
 
   await db
     .insert(notifications)
@@ -104,8 +108,11 @@ async function deliver(
         occurrenceKey: key,
         // Queued only when there is a transport to drain it. Marking a row
         // queued with no mailer configured would build a backlog that never
-        // moves and reads, in the admin, as mail that is on its way.
-        emailStatus: wantsEmail ? ("queued" as const) : ("none" as const),
+        // moves and reads, in the admin, as mail that is on its way. Somebody
+        // who has turned email off gets `none` on the same grounds: the row is
+        // their notification, and it is complete without a copy in an inbox.
+        emailStatus:
+          mailable && person.wantsEmail ? ("queued" as const) : ("none" as const),
       })),
     )
     .onConflictDoNothing();

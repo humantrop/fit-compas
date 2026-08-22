@@ -102,6 +102,7 @@ export const sr: DashboardCopy = {
     time: "Vreme",
     kg: "kg",
     tonnes: "t",
+    lb: "lb",
     hours: "h",
     minutes: "min",
     unavailable:

@@ -1,4 +1,4 @@
-import { LogOut, Shield } from "lucide-react";
+import { LogOut, Shield, UserRound } from "lucide-react";
 
 import { AppNavLinks, AppTabBar } from "@/components/app/app-nav";
 import { TimezoneProbe } from "@/components/app/timezone-probe";
@@ -6,6 +6,7 @@ import { NotificationBell } from "@/components/notifications/notification-bell";
 import { LocaleSwitcher } from "@/components/site/locale-switcher";
 import { Logo } from "@/components/site/logo";
 import { Button, ButtonLink } from "@/components/ui/button";
+import { getAccountCopy } from "@/lib/account/copy";
 import { signOutAction } from "@/lib/auth/actions";
 import { getDashboardCopy } from "@/lib/dashboard/copy";
 import type { Locale } from "@/lib/i18n/config";
@@ -43,6 +44,7 @@ export function AppShell({
   children: React.ReactNode;
 }) {
   const copy = getDashboardCopy(lang).chrome;
+  const accountLabel = getAccountCopy(lang).nav;
 
   return (
     <div className="flex min-h-dvh flex-col">
@@ -77,6 +79,19 @@ export function AppShell({
           ) : null}
 
           <LocaleSwitcher current={lang} />
+
+          {/* Feature 16. In the header rather than as a sixth tab: the tab bar
+              is the five things somebody opens the app to do, and settings is
+              not one of them — it is the thing they go looking for twice a
+              year. */}
+          <ButtonLink
+            href={`/${lang}/account`}
+            variant="ghost"
+            size="sm"
+            aria-label={accountLabel}
+          >
+            <UserRound className="size-4" />
+          </ButtonLink>
 
           <form action={signOutAction}>
             <input type="hidden" name="lang" value={lang} />

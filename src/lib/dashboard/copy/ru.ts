@@ -103,6 +103,7 @@ export const ru: DashboardCopy = {
     time: "Время",
     kg: "кг",
     tonnes: "т",
+    lb: "фнт",
     hours: "ч",
     minutes: "мин",
     unavailable:

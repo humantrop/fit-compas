@@ -4,6 +4,7 @@ import { Globe } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
+import { rememberLocaleAction } from "@/lib/account/actions";
 import { localeNames, localeShort, locales, type Locale } from "@/lib/i18n/config";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,18 @@ export function LocaleSwitcher({ current }: { current: Locale }) {
 
     const segments = pathname.split("/");
     segments[1] = next; // [0] is the empty string before the leading slash
+
+    // Feature 16. The cookie only decides where `/` lands; `profiles.locale` is
+    // what feature 15 freezes into every notification at delivery, so switching
+    // here has to mean the same thing as switching it on the account screen —
+    // otherwise somebody reads the app in English and gets their reminders in
+    // Serbian. Signed out, this is a no-op.
+    //
+    // Deliberately not awaited: the navigation is what the reader asked for and
+    // it should not wait on a write they never see. Nothing on the next screen
+    // reads the column, and the cookie above already carries the choice.
+    void rememberLocaleAction(next).catch(() => {});
+
     startTransition(() => router.push(segments.join("/") || `/${next}`));
   }
 

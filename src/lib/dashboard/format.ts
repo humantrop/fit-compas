@@ -1,3 +1,5 @@
+import { toPounds, type UnitSystem } from "@/lib/account/units";
+
 import type { DashboardCopy } from "./copy";
 
 /**
@@ -10,11 +12,34 @@ import type { DashboardCopy } from "./copy";
  * a hardcoded `toFixed(1)` prints the wrong number in two of three languages.
  */
 
+/**
+ * Tonnage, in the reader's own system (feature 16).
+ *
+ * The tonne exists in the metric branch because 180 000 kg is a wall of digits
+ * and "180 t" is a sentence. The imperial branch has no equivalent partner and
+ * deliberately does not invent one: a short ton is not a unit anybody racks,
+ * and "198 tn" would be a number the reader has to convert back before it means
+ * anything. Pounds all the way up, leaning on digit grouping — which
+ * `Intl.NumberFormat` already gets right per locale.
+ *
+ * The conversion happens before the magnitude test, not after, for the same
+ * reason the charts convert before scaling: dividing kilograms and then
+ * relabelling the result would print a number in one unit under the symbol of
+ * another.
+ */
 export function formatVolume(
   kg: number,
   localeTag: string,
   copy: DashboardCopy["stats"],
+  units: UnitSystem,
 ): string {
+  if (units === "imperial") {
+    const pounds = new Intl.NumberFormat(localeTag, {
+      maximumFractionDigits: 0,
+    }).format(toPounds(kg));
+    return `${pounds} ${copy.lb}`;
+  }
+
   if (kg >= 1000) {
     const tonnes = new Intl.NumberFormat(localeTag, {
       maximumFractionDigits: 1,

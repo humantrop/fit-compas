@@ -9,6 +9,8 @@ import { NotesPanel } from "@/components/admin/clients/notes-panel";
 import { ScheduleList } from "@/components/admin/clients/schedule-list";
 import { Surface } from "@/components/ui/surface";
 import { translate } from "@/db/schema/i18n";
+import { isUnitSystem } from "@/lib/account/units";
+import { getProfile } from "@/lib/auth/session";
 import { getClientsCopy } from "@/lib/clients/copy";
 import {
   displayName,
@@ -52,12 +54,16 @@ export default async function ClientPage({
   const copy = getClientsCopy(lang);
   const detail = copy.detail;
 
-  const [client, programs] = await Promise.all([
+  const [client, programs, me] = await Promise.all([
     getClient(id),
     listProgramOptions(),
+    getProfile(),
   ]);
 
   if (!client) notFound();
+
+  // The trainer's units, not the client's — see ActivityList.
+  const units = me && isUnitSystem(me.units) ? me.units : "metric";
 
   const tag = localeTags[lang];
   const name = displayName(client.profile.fullName, client.profile.email);
@@ -147,6 +153,7 @@ export default async function ClientPage({
             available={client.logAvailable}
             lang={lang}
             copy={copy}
+            units={units}
             timeZone={client.timeZone}
           />
 

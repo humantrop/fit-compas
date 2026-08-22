@@ -1,3 +1,5 @@
+import { toPounds, type UnitSystem } from "@/lib/account/units";
+
 import { daysBetween, toDate, type DayKey } from "./schedule";
 
 /**
@@ -90,8 +92,31 @@ export function formatDuration(seconds: number): string {
   return `${total}s`;
 }
 
-/** Kilograms, thinned out: 12 480 kg reads better as 12.5 t. */
-export function formatVolume(kg: number, localeTag: string): string {
+/**
+ * Kilograms, thinned out: 12 480 kg reads better as 12.5 t.
+ *
+ * On imperial it stays in pounds at every magnitude (feature 16). The tonne
+ * earns its place because "180 t" says in two characters what 180 000 kg says
+ * in six; the short ton earns nothing, because nobody racks one and the reader
+ * would have to convert it back. Same rule as `lib/dashboard/format.ts`, and
+ * the two are deliberately identical — the trainer's screen and the client's
+ * own totals must not thin the same number out differently.
+ *
+ * The symbols are ASCII here rather than translated, unlike the dashboard's,
+ * which takes them from its copy module. Worth reconciling when the per-feature
+ * copy modules fold back into the shared dictionaries.
+ */
+export function formatVolume(
+  kg: number,
+  localeTag: string,
+  units: UnitSystem,
+): string {
+  if (units === "imperial") {
+    return `${new Intl.NumberFormat(localeTag, {
+      maximumFractionDigits: 0,
+    }).format(toPounds(kg))} lb`;
+  }
+
   if (kg >= 1000) {
     return `${new Intl.NumberFormat(localeTag, {
       maximumFractionDigits: 1,

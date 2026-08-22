@@ -12,6 +12,7 @@ import { SuggestionList } from "@/components/dashboard/suggestion-list";
 import { TodayCard } from "@/components/dashboard/today-card";
 import { WeekStrip } from "@/components/dashboard/week-strip";
 import { Surface } from "@/components/ui/surface";
+import { isUnitSystem } from "@/lib/account/units";
 import { getProfile, requireUser } from "@/lib/auth/session";
 import { getAccess } from "@/lib/billing/access";
 import { getDashboardCopy } from "@/lib/dashboard/copy";
@@ -67,6 +68,9 @@ export default async function DashboardPage({
   const profile = await getProfile();
   const copy = getDashboardCopy(lang);
   const localeTag = localeTags[lang];
+  // Feature 16. Tonnage is the one number on this screen carrying a unit, and
+  // the unit is a property of the reader rather than of the log.
+  const units = profile && isUnitSystem(profile.units) ? profile.units : "metric";
 
   // Called from the day the screen is written, not the day billing lands —
   // see lib/billing/access.ts. Today it lets everyone through.
@@ -203,6 +207,7 @@ export default async function DashboardPage({
             ]}
             copy={copy.stats}
             localeTag={localeTag}
+            units={units}
             unavailable={!stats.available}
           />
         </div>

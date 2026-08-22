@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { unitSystem, userRole } from "./enums";
 
@@ -20,6 +20,13 @@ export const profiles = pgTable("profiles", {
   avatarUrl: text("avatar_url"),
   locale: text("locale"),
   units: unitSystem("units").notNull().default("metric"),
+  /**
+   * The client's own say over email (feature 16). Added by
+   * supabase/migrations/0016_account.sql, so the next `db:generate` will want
+   * to add it a second time — comment that ALTER out, the same way 0000 has
+   * the CREATE TABLE for this whole table commented out.
+   */
+  emailNotifications: boolean("email_notifications").notNull().default(true),
   onboardedAt: timestamp("onboarded_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true })
     .notNull()

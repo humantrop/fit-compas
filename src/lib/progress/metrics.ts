@@ -1,4 +1,5 @@
 import type { BodyMetric } from "@/db/schema/progress";
+import { CM_PER_INCH, LB_PER_KG, type UnitSystem } from "@/lib/account/units";
 
 /**
  * What each body metric is, in one place.
@@ -18,11 +19,18 @@ import type { BodyMetric } from "@/db/schema/progress";
  * **Canonical units are metric.** Kilograms, centimetres, percent. A column
  * that sometimes holds pounds is a column nobody can chart, so the conversion
  * happens at the edge — on the way to the screen and on the way back from the
- * form — and `profiles.units` decides which edge. Feature 16 gives the reader
- * a switch for it; nothing in the database moves when they flip it.
+ * form — and `profiles.units` decides which edge. Feature 16 built the switch
+ * for it; nothing in the database moves when the reader flips it.
  */
 
-export type UnitSystem = "metric" | "imperial";
+/**
+ * Re-exported rather than declared: the type and the conversion factors moved
+ * to `lib/account/units.ts` with feature 16, because the tonnage tiles on the
+ * dashboard and the trainer's client screen need them too and none of those
+ * has anything to do with body measurements. Every existing import of
+ * `UnitSystem` from this module keeps working.
+ */
+export type { UnitSystem };
 
 /** What kind of quantity a metric is, which is what decides its conversion. */
 export type Quantity = "mass" | "length" | "percent";
@@ -81,9 +89,6 @@ export function isBodyMetric(value: unknown): value is BodyMetric {
 }
 
 /* ------------------------------------------------------------ conversion */
-
-const LB_PER_KG = 2.204_622_621_8;
-const CM_PER_INCH = 2.54;
 
 /** The symbol shown after a number, for the reader's own unit system. */
 export function unitSymbol(quantity: Quantity, units: UnitSystem): string {

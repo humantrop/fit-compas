@@ -9,6 +9,7 @@ import {
   LogOut,
   Menu,
   SlidersHorizontal,
+  UserRound,
   Users,
   X,
 } from "lucide-react";
@@ -86,10 +87,19 @@ const GROUPS: { label: keyof AdminNavCopy | null; items: Item[] }[] = [
 export function AdminShell({
   lang,
   copy,
+  accountLabel,
   children,
 }: {
   lang: Locale;
   copy: AdminNavCopy;
+  /**
+   * Feature 16, passed in rather than added to `AdminNavCopy`. That type is
+   * filled from the three shared dictionaries, which every parallel session
+   * rewrites whole; one string arriving from the account feature's own typed
+   * copy module keeps this out of that race. Fold it into the nav copy with
+   * the rest of the per-feature modules.
+   */
+  accountLabel: string;
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -216,6 +226,18 @@ export function AdminShell({
 
           <div className="flex items-center gap-1.5">
             <LocaleSwitcher current={lang} />
+
+            {/* The trainer has a profile, units and a password like anybody
+                else, and the settings screen is the same one — reached from
+                here so it does not mean a trip through the client app. */}
+            <Link
+              href={`/${lang}/account`}
+              aria-label={accountLabel}
+              className="inline-flex size-9 items-center justify-center rounded-control text-ink-300 transition-colors hover:bg-white/6 hover:text-ink-100"
+            >
+              <UserRound className="size-4" />
+            </Link>
+
             <form action={signOutAction}>
               <input type="hidden" name="lang" value={lang} />
               <Button type="submit" variant="ghost" size="sm">
