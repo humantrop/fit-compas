@@ -57,9 +57,11 @@ src/
   writable by anyone holding the publishable key — which ships to the browser
   by design. Default-deny plus a narrow read grant. Verify with an anon
   `curl $SUPABASE_URL/rest/v1/<table>` before shipping.
-- **Migrations run against `DIRECT_URL` (5432), the app against `DATABASE_URL`
-  (6543).** The transaction pooler cannot hold session state, so DDL through it
-  half-applies, and `postgres.js` must use `prepare: false` against it.
+- **Both `DATABASE_URL` and `DIRECT_URL` point at the session pooler (5432).**
+  The transaction pooler (6543) hangs instead of answering once a couple of
+  queries queue on one connection, which reads as the whole app loading
+  forever and ends in a Vercel function timeout — see `src/db/client.ts`. It
+  also cannot hold session state, so DDL through it half-applies.
 
 ## Local development
 
