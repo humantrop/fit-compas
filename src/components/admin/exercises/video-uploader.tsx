@@ -247,6 +247,7 @@ export function VideoUploader({
             <video
               src={preview}
               controls
+              loop
               playsInline
               className="w-full rounded-control border border-white/8 bg-black"
             />

@@ -97,6 +97,8 @@ export function ExerciseStep({
         poster={item.posterUrl}
         title={title}
         emptyLabel={copy.step.noVideo}
+        pauseLabel={copy.step.pause}
+        playLabel={copy.step.continue}
       />
 
       <div>

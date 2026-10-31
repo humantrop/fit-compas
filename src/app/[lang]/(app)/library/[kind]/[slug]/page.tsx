@@ -6,10 +6,12 @@ import { notFound } from "next/navigation";
 import { DifficultyMeter } from "@/components/library/difficulty-meter";
 import { formatDuration } from "@/components/library/library-card";
 import { Surface } from "@/components/ui/surface";
+import { signExerciseVideoAction } from "@/lib/exercises/video-actions";
 import { isLocale } from "@/lib/i18n/config";
 import { getLibraryCopy } from "@/lib/library/copy";
 import { librarySource } from "@/lib/library/sources";
 import { isLibraryKind, type LibraryTag } from "@/lib/library/types";
+import type { PlaybackSource } from "@/lib/video/types";
 
 export async function generateMetadata({
   params,
@@ -40,6 +42,9 @@ export default async function LibraryDetailPage({
   // client must not be able to probe for content that is not out yet.
   if (!item) notFound();
 
+  const playback =
+    kind === "exercises" && item.hasVideo ? await playbackFor(item.id) : null;
+
   return (
     <article className="flex flex-col gap-8">
       <Link
@@ -52,24 +57,39 @@ export default async function LibraryDetailPage({
 
       <div className="grid gap-8 lg:grid-cols-[1.4fr_1fr] lg:items-start">
         <div className="flex flex-col gap-6">
-          {/* Feature 06 owns video playback and the signed URLs behind it. This
-              slot states what exists so the screen is honest until then. */}
-          <Surface
-            tone="strong"
-            edge
-            className="grid aspect-video place-items-center bg-linear-to-br from-brand-500/14 via-transparent to-glow/10"
-          >
-            <div className="flex flex-col items-center gap-3 px-6 text-center">
-              <span className="grid size-14 place-items-center rounded-full border border-brand-400/35 bg-brand-500/16 text-brand-100">
-                <Play className="size-5 translate-x-px fill-current" />
-              </span>
-              <p className="text-[13px] text-ink-400">
-                {item.hasVideo && item.durationSec
-                  ? formatDuration(item.durationSec)
-                  : copy.detail.videoPending}
-              </p>
-            </div>
-          </Surface>
+          {playback ? (
+            // The clip shows how the movement is done, so it loops until the
+            // viewer pauses it or leaves. Not autoplayed: up to 50 MB is a lot
+            // to pull over a gym's mobile signal for someone who only came to
+            // read the cues.
+            <video
+              src={playback.url}
+              poster={playback.poster ?? undefined}
+              aria-label={item.title}
+              controls
+              loop
+              playsInline
+              preload="metadata"
+              className="aspect-video w-full rounded-card border border-white/8 bg-black object-contain"
+            />
+          ) : (
+            <Surface
+              tone="strong"
+              edge
+              className="grid aspect-video place-items-center bg-linear-to-br from-brand-500/14 via-transparent to-glow/10"
+            >
+              <div className="flex flex-col items-center gap-3 px-6 text-center">
+                <span className="grid size-14 place-items-center rounded-full border border-brand-400/35 bg-brand-500/16 text-brand-100">
+                  <Play className="size-5 translate-x-px fill-current" />
+                </span>
+                <p className="text-[13px] text-ink-400">
+                  {item.hasVideo && item.durationSec
+                    ? formatDuration(item.durationSec)
+                    : copy.detail.videoPending}
+                </p>
+              </div>
+            </Surface>
+          )}
 
           <div>
             <h1 className="text-3xl font-bold sm:text-4xl">{item.title}</h1>
@@ -148,6 +168,22 @@ export default async function LibraryDetailPage({
       </div>
     </article>
   );
+}
+
+/**
+ * A signed URL for the exercise's clip, through the same gate feature 06 wrote
+ * for clients: published, and the viewer has access. A clip that cannot be
+ * signed leaves the placeholder in place rather than taking the page down —
+ * the cues and the description are still worth reading without it.
+ */
+async function playbackFor(exerciseId: string): Promise<PlaybackSource | null> {
+  try {
+    const result = await signExerciseVideoAction(exerciseId);
+    return result.ok ? result.playback : null;
+  } catch (error) {
+    console.error("library playbackFor", error);
+    return null;
+  }
 }
 
 /**
